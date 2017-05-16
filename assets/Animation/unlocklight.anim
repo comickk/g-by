@@ -1,0 +1,33 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "unlocklight",
+  "_objFlags": 0,
+  "_rawFiles": null,
+  "_duration": 1.33,
+  "sample": 30,
+  "speed": 1,
+  "wrapMode": 2,
+  "curveData": {
+    "props": {
+      "opacity": [
+        {
+          "frame": 0,
+          "value": 255
+        },
+        {
+          "frame": 0.6666666666666666,
+          "value": 50
+        },
+        {
+          "frame": 0.8,
+          "value": 87.35304999998588
+        },
+        {
+          "frame": 1.3333333333333333,
+          "value": 255
+        }
+      ]
+    }
+  },
+  "events": []
+}

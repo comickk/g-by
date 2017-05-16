@@ -1,0 +1,61 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "gun3",
+  "_objFlags": 0,
+  "_rawFiles": null,
+  "_duration": 0.31666666666666665,
+  "sample": 60,
+  "speed": 1,
+  "wrapMode": 1,
+  "curveData": {
+    "comps": {
+      "cc.Sprite": {
+        "spriteFrame": [
+          {
+            "frame": 0,
+            "value": {
+              "__uuid__": "25ba8516-e032-46cc-b220-d4ec822365fe"
+            }
+          },
+          {
+            "frame": 0.05,
+            "value": {
+              "__uuid__": "98199e37-4e0a-447a-a2a6-a937cee29a6e"
+            }
+          },
+          {
+            "frame": 0.1,
+            "value": {
+              "__uuid__": "5b42d819-dcff-4c13-a607-dfc9b5d73c2b"
+            }
+          },
+          {
+            "frame": 0.15,
+            "value": {
+              "__uuid__": "197d75ed-acc5-4c85-953c-056e91d832d8"
+            }
+          },
+          {
+            "frame": 0.2,
+            "value": {
+              "__uuid__": "c5780333-ae3d-4b93-b6ea-2e3898ca0ce1"
+            }
+          },
+          {
+            "frame": 0.25,
+            "value": {
+              "__uuid__": "8cd93fdb-bb31-4ae2-844e-102fd38d85e9"
+            }
+          },
+          {
+            "frame": 0.3,
+            "value": {
+              "__uuid__": "25ba8516-e032-46cc-b220-d4ec822365fe"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "events": []
+}

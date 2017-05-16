@@ -1,0 +1,43 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "lightning",
+  "_objFlags": 0,
+  "_rawFiles": null,
+  "_duration": 0.4444444444444444,
+  "sample": 36,
+  "speed": 1,
+  "wrapMode": 2,
+  "curveData": {
+    "comps": {
+      "cc.Sprite": {
+        "spriteFrame": [
+          {
+            "frame": 0,
+            "value": {
+              "__uuid__": "025c2e3c-c23d-4d2e-9ce8-c4cd1e5894f4"
+            }
+          },
+          {
+            "frame": 0.1388888888888889,
+            "value": {
+              "__uuid__": "38be1e0f-be34-4071-b73c-aeae1b42d287"
+            }
+          },
+          {
+            "frame": 0.2777777777777778,
+            "value": {
+              "__uuid__": "8cec5c6b-0ff2-47cc-90dc-327465e7782d"
+            }
+          },
+          {
+            "frame": 0.4166666666666667,
+            "value": {
+              "__uuid__": "025c2e3c-c23d-4d2e-9ce8-c4cd1e5894f4"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "events": []
+}

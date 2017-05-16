@@ -1,0 +1,79 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "boss1_d",
+  "_objFlags": 0,
+  "_rawFiles": null,
+  "_duration": 1.3611111111111112,
+  "sample": 36,
+  "speed": 1,
+  "wrapMode": 0,
+  "curveData": {
+    "comps": {
+      "cc.Sprite": {
+        "spriteFrame": [
+          {
+            "frame": 0,
+            "value": {
+              "__uuid__": "62e56901-d26e-4407-9525-da2fcbe2e5b2"
+            }
+          },
+          {
+            "frame": 0.1388888888888889,
+            "value": {
+              "__uuid__": "dd676f77-fea1-4387-8820-d282b6134c8e"
+            }
+          },
+          {
+            "frame": 0.2777777777777778,
+            "value": {
+              "__uuid__": "d257f903-2403-43d0-bb81-b450dab44bd7"
+            }
+          },
+          {
+            "frame": 0.4166666666666667,
+            "value": {
+              "__uuid__": "9fba426a-724a-49bb-8f39-02bf253df1ee"
+            }
+          },
+          {
+            "frame": 0.5555555555555556,
+            "value": {
+              "__uuid__": "87770079-9861-4596-9845-eadf8273068a"
+            }
+          },
+          {
+            "frame": 0.6944444444444444,
+            "value": {
+              "__uuid__": "e452956a-1921-4ba9-9c7d-16a0553ca6de"
+            }
+          },
+          {
+            "frame": 0.8333333333333334,
+            "value": {
+              "__uuid__": "0727117c-e010-4fa4-90c0-8b09fc805e7c"
+            }
+          },
+          {
+            "frame": 0.9722222222222222,
+            "value": {
+              "__uuid__": "7645e2bf-e989-4f79-9b2e-466e9a40eec5"
+            }
+          },
+          {
+            "frame": 1.1111111111111112,
+            "value": {
+              "__uuid__": "4f7948fb-5dc2-48c2-a624-8e59672d55db"
+            }
+          },
+          {
+            "frame": 1.3333333333333333,
+            "value": {
+              "__uuid__": "4f7948fb-5dc2-48c2-a624-8e59672d55db"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "events": []
+}

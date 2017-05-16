@@ -1,0 +1,55 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "coin",
+  "_objFlags": 0,
+  "_rawFiles": null,
+  "_duration": 0.5333333333333333,
+  "sample": 30,
+  "speed": 1,
+  "wrapMode": 2,
+  "curveData": {
+    "comps": {
+      "cc.Sprite": {
+        "spriteFrame": [
+          {
+            "frame": 0,
+            "value": {
+              "__uuid__": "9437f8a2-6f41-4e92-b37e-09e4a8f49321"
+            }
+          },
+          {
+            "frame": 0.1,
+            "value": {
+              "__uuid__": "940f8c0c-48ba-4174-8255-3b3cf89eb694"
+            }
+          },
+          {
+            "frame": 0.2,
+            "value": {
+              "__uuid__": "ecaca19c-4275-4320-95ff-9f7a93fbc170"
+            }
+          },
+          {
+            "frame": 0.3,
+            "value": {
+              "__uuid__": "41003a67-5729-446d-876a-56bed31cf3a0"
+            }
+          },
+          {
+            "frame": 0.4,
+            "value": {
+              "__uuid__": "c55e6e5e-1e25-45cf-a217-65913e008d06"
+            }
+          },
+          {
+            "frame": 0.5,
+            "value": {
+              "__uuid__": "9437f8a2-6f41-4e92-b37e-09e4a8f49321"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "events": []
+}

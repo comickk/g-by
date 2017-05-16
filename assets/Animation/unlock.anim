@@ -1,0 +1,206 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "unlock",
+  "_objFlags": 0,
+  "_rawFiles": null,
+  "_duration": 2.17,
+  "sample": 30,
+  "speed": 1,
+  "wrapMode": 1,
+  "curveData": {
+    "paths": {
+      "flash": {
+        "comps": {
+          "cc.Sprite": {
+            "spriteFrame": [
+              {
+                "frame": 0,
+                "value": {
+                  "__uuid__": "d82bbe8c-9193-474f-927f-8ff6da7d2cb7"
+                }
+              },
+              {
+                "frame": 0.16666666666666666,
+                "value": {
+                  "__uuid__": "fe1876e5-20d6-4804-9432-fd33af8dff12"
+                }
+              },
+              {
+                "frame": 0.3333333333333333,
+                "value": {
+                  "__uuid__": "efcd2652-fa0b-4635-a56f-f6ba83006777"
+                }
+              },
+              {
+                "frame": 0.5,
+                "value": {
+                  "__uuid__": "46975dce-43b6-4203-9276-9a45e6bb552f"
+                }
+              },
+              {
+                "frame": 0.6666666666666666,
+                "value": {
+                  "__uuid__": "0d6e4b54-e9ce-4805-b497-f5616e51ab2b"
+                }
+              },
+              {
+                "frame": 0.8333333333333334,
+                "value": {
+                  "__uuid__": "655bbb89-3b8c-4066-b1d3-38b5e2f96679"
+                }
+              },
+              {
+                "frame": 1,
+                "value": {
+                  "__uuid__": "ab567dcb-8e58-4539-98ba-09b78ef41e5a"
+                }
+              },
+              {
+                "frame": 1.1666666666666667,
+                "value": {
+                  "__uuid__": "07710a9a-2c4c-45de-a248-20da3f7ed9ba"
+                }
+              },
+              {
+                "frame": 1.3333333333333333,
+                "value": {
+                  "__uuid__": "e763b1e8-6873-479b-9eed-c94cd8b21f1b"
+                }
+              }
+            ]
+          }
+        },
+        "props": {
+          "active": [
+            {
+              "frame": 0,
+              "value": true
+            },
+            {
+              "frame": 1.3666666666666667,
+              "value": false
+            }
+          ]
+        }
+      },
+      "pao_unlock_item_lock": {
+        "props": {
+          "rotation": [
+            {
+              "frame": 0.8333333333333334,
+              "value": 0
+            },
+            {
+              "frame": 1,
+              "value": 10
+            },
+            {
+              "frame": 1.1666666666666667,
+              "value": -10
+            },
+            {
+              "frame": 1.3333333333333333,
+              "value": 10
+            },
+            {
+              "frame": 1.5,
+              "value": -10
+            },
+            {
+              "frame": 1.6666666666666667,
+              "value": 0
+            }
+          ],
+          "scaleX": [
+            {
+              "frame": 1.8,
+              "value": 1
+            },
+            {
+              "frame": 2.1333333333333333,
+              "value": 0.3
+            },
+            {
+              "frame": 2.1666666666666665,
+              "value": 0.3
+            }
+          ],
+          "scaleY": [
+            {
+              "frame": 1.8,
+              "value": 1
+            },
+            {
+              "frame": 2.1333333333333333,
+              "value": 0.3
+            },
+            {
+              "frame": 2.1666666666666665,
+              "value": 0.3
+            }
+          ],
+          "opacity": [
+            {
+              "frame": 1.9,
+              "value": 255
+            },
+            {
+              "frame": 2.1333333333333333,
+              "value": 50
+            },
+            {
+              "frame": 2.1666666666666665,
+              "value": 50
+            }
+          ],
+          "active": [
+            {
+              "frame": 0,
+              "value": true
+            },
+            {
+              "frame": 2.1666666666666665,
+              "value": false
+            }
+          ]
+        }
+      },
+      "pao_unlock_mask": {
+        "props": {
+          "opacity": [
+            {
+              "frame": 1.6666666666666667,
+              "value": 255
+            },
+            {
+              "frame": 2.1666666666666665,
+              "value": 20
+            }
+          ],
+          "active": [
+            {
+              "frame": 2.1333333333333333,
+              "value": true
+            },
+            {
+              "frame": 2.1666666666666665,
+              "value": false
+            }
+          ]
+        }
+      },
+      "pao_unlock_item_light": {
+        "props": {
+          "opacity": []
+        }
+      }
+    }
+  },
+  "events": [
+    {
+      "frame": 2.1666666666666665,
+      "func": "animfinish",
+      "params": []
+    }
+  ]
+}

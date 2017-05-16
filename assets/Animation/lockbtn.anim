@@ -1,0 +1,27 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "lockbtn",
+  "_objFlags": 0,
+  "_rawFiles": null,
+  "_duration": 15,
+  "sample": 10,
+  "speed": 1,
+  "wrapMode": 1,
+  "curveData": {
+    "comps": {
+      "cc.Sprite": {
+        "fillRange": [
+          {
+            "frame": 0,
+            "value": 1
+          },
+          {
+            "frame": 15,
+            "value": 0
+          }
+        ]
+      }
+    }
+  },
+  "events": []
+}
