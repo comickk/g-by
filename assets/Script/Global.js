@@ -2,6 +2,7 @@ var Global = function(){
 
     //  玩家数据类
     var myseat = 0;
+    
    
     // get GameController(){
     //     return this.game;

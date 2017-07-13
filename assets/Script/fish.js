@@ -1,4 +1,5 @@
 var global = require('Global');
+var FishMath = require('FishMath');
 cc.Class({
     extends: cc.Component,
 
@@ -24,11 +25,24 @@ cc.Class({
 			v_islocal:true,
 
 			_isboss:false,
+
+			_pathID:'001',
+			//_path:[],
+			_offstep:0,//轨迹偏移,  从第几个结点开始
+			_isloop:true,//是否循环轨迹
+			_step:1,//默认轨迹时间点，0为初始位置
+			_steplen:0.25,//轨迹步长
+
+			_width:0,
+			_height:0,
     },
 
     // use this for initialization
     onLoad: function () {
 		//this.node.on('move',this.f_Move,this);
+
+     	this._width= cc.Canvas.instance.node.width/2;
+        this._height = cc.Canvas.instance.node.height/2;
 
         this.node.on('flash',function(){                                           
                                var seq = cc.sequence( cc.tintTo(0,255,0,255) ,cc.tintTo(0.5,255,255,255));
@@ -62,6 +76,25 @@ cc.Class({
 			this.v_islock = false;
 			this.v_lockicon.active = false;
 		},this);
+
+		//读取指定轨迹文件
+		this.node.on('loadpath',function(event){
+				
+			this.LoadPath(event.detail.pathid,event.detail.offstep);
+		},this);
+
+		//按轨迹移动
+		// this.node.on('move',function(){
+		// 	//console.log('------------------------');
+		// 	//读取正常开始轨迹
+		// 	if( this._path.length > 0 ){
+		// 		this.schedule(function() {
+		// 			this.FishMove();
+ 		// 		}, this._steplen);
+		// 	}
+		// },this);
+
+		//this.LoadPath('x001');
     },
 
 	onDestroy :function( ){	
@@ -123,6 +156,85 @@ cc.Class({
 		// 	},this)
 		// ));
 	},
+
+	//加载轨迹
+	LoadPath:function(pathid,offstep){	
+
+		this._pathID = pathid;	
+		this._offstep = offstep;
+		this._step = this._offstep+1;
+
+		//设定初始位置 
+		var fp =  FishMath.fishpath.trail[this._pathID][this._offstep];
+		if(!isNaN(fp[0])){
+			this.node.setPosition(fp[0]*this._width, fp[1]*this._height);
+			this.node.rotation = fp[2];
+		}
+
+		//开始按轨迹动运
+		if( FishMath.fishpath.trail[this._pathID].length > 1 ){
+				this.schedule(function() {
+					this.FishMove();
+ 				}, this._steplen);
+			}
+		//this.node.emit('move');
+
+		// var that  = this;
+		// cc.loader.loadRes(pathid,function(err,data){
+		// 	if(err)
+		// 	{
+		// 		cc.error(err.message || err);
+		// 		return;
+		// 	}
+			
+		// 	var path = data.toString().split('\n');
+		// 	//console.log(path);
+		// 	var i=0;
+		// 	for(let line of path){
+		// 		var p=line.split(' ');
+		// 		var fp = [];
+		// 		fp[0] = parseInt(p[0]);
+		// 		fp[1] = parseFloat(p[1]);
+		// 		fp[2] = parseFloat(p[2]);
+		// 		fp[3] = parseFloat(p[3]);
+				
+		// 		that._path.push(fp);	
+		// 		//console.log(fp);	
+		// 	}
+
+		// 	//设定初始位置 
+		// 	var fp =  that._path[that._offstep];
+		// 	if(!isNaN(fp[0])){
+		// 		that.node.x= fp[1];
+		// 		that.node.y = fp[2];
+		// 		that.node.rotation = fp[3];
+		// 	}
+
+		// 	that.node.emit('move');
+		// 	cc.loader.releaseRes(pathid);
+		// 	//console.log(that._path);			
+		// });	
+	},
+
+	FishMove:function(){
+		var fp ;//=  FishMath.fishpath.trail[this._pathID][this._step];
+		//if(!isNaN(fp[0])){
+
+		//结束线路，重新开始
+		if(this._step > FishMath.fishpath.trail[this._pathID].length-1 ) {
+			this._step = 1;
+			//恢复轨迹初始位置
+			fp =  FishMath.fishpath.trail[this._pathID][0];
+			this.node.setPosition(fp[0]*this._width, fp[1]*this._height);
+			this.node.rotation = fp[2];
+		}else{
+			fp = FishMath.fishpath.trail[this._pathID][this._step];
+			this.node.runAction(cc.spawn(cc.moveTo(this._steplen, fp[0]*this._width, fp[1]*this._height), 
+			cc.rotateTo (this._steplen,fp[2])));
+		}
+		this._step++;
+				
+	},
     
     test:function(event ) {
 		//let x = cc.randomMinus1To1()* (cc.Canvas.instance.node.width/2 - 100);
@@ -168,5 +280,6 @@ cc.Class({
         //var action = cc.moveBy(5,500,100);
        // this.node.runAction(action);
     }
+	
     
 });

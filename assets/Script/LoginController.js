@@ -20,18 +20,31 @@ cc.Class({
         popwinlayer:cc.Node,
 
         logintip:cc.Node,
+
+        _lastnick:'',
+        _lastpass:'',
     },
 
     // use this for initialization
     onLoad: function () {
          this.popwinlayer.on('touchend',function(){event.stopPropagation();});  
+
+         this.node.on('getauthcode',this.GetAuthCode,this);
        
          //初始化 anysdk
         global.anysdk = require('PluginAnySdk').Init();
         
         //获取socket
-        global.socket = socket; 
-      
+         global.socket = socket; 
+
+        
+         this._lastnick = cc.sys.localStorage.getItem('usernick');
+          if( this._lastnick  != null){
+            
+          //  console.log(this._lastnick);
+            this.ebLoginId.string = this._lastnick;
+            this._lastpass = cc.sys.localStorage.getItem('userpass');
+        }      
     },
 
     //消息处理
@@ -81,25 +94,28 @@ cc.Class({
 
     //获取账号开始游戏
     btn_start:function(){
-   
-        var user = new proto.gws.model.UserProtobuf();  
-        user.setUserName('猫一八')
-        user.setUserPass('123321');
-
-        var req = new proto.gws.RequestProtobuf();
-        req.setVersion(101);
-        req.setMethod(1);
-        req.setSeqid(parseInt(Math.random() * 1000));
-        req.setTimestamp(new Date().getTime());
-        req.setData(user.serializeBinary());
-
-        console.log(req.serializeBinary());
-        console.log('====')
-
-        var resp = proto.gws.ResponseProtobuf;
+        
+      
 
 
-        socket.ws.send(req.serializeBinary());
+        // var user = new proto.gws.model.UserProtobuf();  
+        // user.setUserName('猫一八')
+        // user.setUserPass('123321');
+
+        // var req = new proto.gws.RequestProtobuf();
+        // req.setVersion(101);
+        // req.setMethod(1);
+        // req.setSeqid(parseInt(Math.random() * 1000));
+        // req.setTimestamp(new Date().getTime());
+        // req.setData(user.serializeBinary());
+
+        // console.log(req.serializeBinary());
+        // console.log('====')
+
+        // var resp = proto.gws.ResponseProtobuf;
+
+
+        // socket.ws.send(req.serializeBinary());
 
         //   var socket = new WebSocket('ws://118.190.89.153/s/68/');
         //   socket.binaryType = 'arraybuffer';
@@ -150,18 +166,67 @@ cc.Class({
         //cc.sys.localStorage.removeItem(key)
         */
 
-        cc.director.preloadScene('hall', function () {
-               cc.director.loadScene('hall');
-        });
+        if(this._lastnick!= null){
+          var arg ="user_name="+this._lastnick;
+         arg += "&user_pass="+this._lastpass;        
 
-        this.popwinlayer.active = true;
-        this.logintip.active = true;
+         this.Send(arg);
+
+        //   cc.director.preloadScene('hall', function () {
+        //           cc.director.loadScene('hall');
+        //    });
+
+            //显示正在登录提示条
+            this.popwinlayer.active = true;
+            this.logintip.active = true;
+        }
       //  this.logintip.string = '正在登录';
     },
 
     //客服
     btn_contactus:function(){
         this.win_kefu.active = true;
+    },
+
+    GetAuthCode:function(event){
+
+        console.log( '--'+ event.detail.code );
+
+        global.socket.Init(event.detail.server,event.detail.code); 
+
+         cc.director.preloadScene('hall', function () {
+               cc.director.loadScene('hall');
+        });        
+
+        if(cc.sys.localStorage.getItem('usernick') != event.detail.nick){
+            //存储此次登录账号
+            cc.sys.localStorage.setItem('usernick', event.detail.nick);
+            cc.sys.localStorage.setItem('userpass', event.detail.pass);
+        }
+    },
+
+    Send:function(arg){
+
+        var self = this;
+        
+         var url ="http://192.168.2.173/client/user/login?";
+       var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && (xhr.status >= 200 && xhr.status < 400)) {
+                var response = xhr.responseText;
+                // console.log(response);
+                var s = JSON.parse(response);
+               // console.log(s)
+
+                self.node.emit('getauthcode',{code:s.data[0],server:s.data[1],
+                        nick:self._lastnick,
+                        pass:self._lastpass});
+            }
+        };
+
+        xhr.open("POST", url+arg, true);
+        xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded;");
+        xhr.send(arg);
     },
 
 });

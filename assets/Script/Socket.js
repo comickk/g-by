@@ -7,13 +7,27 @@ function gamesocket(){
    gamesocket.prototype.ws=null;
    gamesocket.prototype.msglist=[];
 
-   gamesocket.prototype.Init = function(){
+   gamesocket.prototype.Init = function( server,code  ){
         var self =this;
-        this.ws = new WebSocket('ws://118.190.89.153/s/68/');
+        this.ws = new WebSocket('ws://192.168.2.173/s/'+server+'/');
         this.ws.binaryType = 'arraybuffer';
 
         this.ws.onopen = function(evt){
+
            // this.ws.send(req.serializeBinary());
+
+                 // first
+            var p = {
+                version: 102,
+                seqId: Math.random() * 1000,
+                timestamp: new Date().getTime(),
+                data: JSON.stringify({
+                    code: code
+                })
+            };
+           this.send(JSON.stringify(p));
+
+           // console.log(this.ws);
         };
 
         this.ws.onmessage = function(evt)
@@ -21,14 +35,22 @@ function gamesocket(){
             var data = evt.data;
             var type = typeof data;
 
-            
-           // console.log(data) 
+            data = JSON.parse(data);
 
-            var result = proto.gws.ResponseProtobuf.deserializeBinary(data);
-            //console.log(result.getVersion())
+          //  console.log(data);
+
+        //     var data = evt.data;
+        //     var type = typeof data;
+
+            
+        //    // console.log(data) 
+
+        //     var result = proto.gws.ResponseProtobuf.deserializeBinary(data);
+        //     //console.log(result.getVersion())
            
-            var _user = proto.gws.model.UserProtobuf;
-            self.msglist.push( _user.deserializeBinary(result.getData()) );             
+        //     var _user = proto.gws.model.UserProtobuf;
+        //     self.msglist.push( _user.deserializeBinary(result.getData()) );  
+         self.msglist.push( data);           
         };
 
         this.ws.onclose = function(evt){
@@ -37,6 +59,10 @@ function gamesocket(){
 
         return this;  
     }
+
+    // gamesocket.prototype.Send = function(){
+
+    // }
 
     gamesocket.prototype.Close = function(){
         //console.log('--清空消息队列--');
@@ -48,4 +74,5 @@ function gamesocket(){
     }
 
 var gs = new gamesocket();  
-module.exports =gs.Init();
+module.exports =gs;
+//module.exports =gs.Init();

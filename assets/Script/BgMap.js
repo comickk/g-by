@@ -14,6 +14,7 @@ cc.Class({
 
     // use this for initialization
     onLoad: function () {
+  
 
         this.node.on('changemap',this.ChangeMap,this);
         this.ChangeMapFinish();

@@ -1,4 +1,5 @@
 var global = require('Global');
+
 //var plugin = require('anysdk');
 cc.Class({
     extends: cc.Component,
@@ -37,7 +38,7 @@ cc.Class({
             this.SetRoom(i,false);
         }       
 
-        this.win_rotary.active = true;
+       // this.win_rotary.active = true;
     },
 
     start:function(){
@@ -46,8 +47,45 @@ cc.Class({
     },
 
     //消息处理
-    MsgHandle:function(){
+    MsgHandle:function( msg){
+        
+         switch(msg.method){
+          case 2002: {  //1对1 聊天
+           // random();
 
+            (function(){
+              console.log(msg)
+            })();
+
+            break;
+          }
+          case 3002: { //进入房间消息
+
+            (function(){             
+              console.log(msg.data)
+            })();
+
+            //启动加载捕鱼场景
+            this.loadprog.active = true;
+            var loadsp = this.loadprog.children[2].getComponent(cc.Sprite);
+            cc.loader.onProgress = function (completedCount, totalCount, item) {
+           
+                var progress =  (100 * completedCount / totalCount).toFixed(2);
+                loadsp.fillRange = progress;
+               // cc.log(progress + '%');
+            }
+            cc.director.preloadScene('game_base', function () {
+                    cc.loader.onProgress=null;
+                   cc.director.loadScene('game_base');
+            });
+
+            break;
+          }
+          default: {
+           // console.log(data)
+            break;
+          }
+        }
     },
 
     update:function(dt){
@@ -55,8 +93,8 @@ cc.Class({
         if(global.socket.msglist.length < 1) return;
        // console.log('--------------处理消息队列------------------'+ global.socket.msglist.length);
         for( let msg of global.socket.msglist){
-            this.MsgHandle();
-            console.log(msg);
+            this.MsgHandle(msg);
+           
             global.socket.msglist.pop();
         }
     },
@@ -64,18 +102,28 @@ cc.Class({
     Btn_Fish:function(){
         //console.log('快速开始游戏');
 
-        this.loadprog.active = true;
-            var loadsp = this.loadprog.children[2].getComponent(cc.Sprite);
-           cc.loader.onProgress = function (completedCount, totalCount, item) {
+         var p = {
+            version: 102,
+            method: 3001,
+            seqId: Math.random() * 1000,
+            timestamp: new Date().getTime(),
+            data:'baiyin',
+        };       
+
+        global.socket.ws.send(JSON.stringify(p));
+
+        // this.loadprog.active = true;
+        // var loadsp = this.loadprog.children[2].getComponent(cc.Sprite);
+        // cc.loader.onProgress = function (completedCount, totalCount, item) {
            
-            var progress =  (100 * completedCount / totalCount).toFixed(2);
-            loadsp.fillRange = progress;
-           // cc.log(progress + '%');
-        }
-     cc.director.preloadScene('game_base', function () {
-                cc.loader.onProgress=null;
-               cc.director.loadScene('game_base');
-        });
+        //     var progress =  (100 * completedCount / totalCount).toFixed(2);
+        //     loadsp.fillRange = progress;
+        //    // cc.log(progress + '%');
+        // }
+        // cc.director.preloadScene('game_base', function () {
+        //         cc.loader.onProgress=null;
+        //        cc.director.loadScene('game_base');
+        // });
     },
 
     Btn_Back:function(){

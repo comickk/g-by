@@ -2,6 +2,7 @@ var C_NodePool =  require("NodePool");
 var FishMath = require('FishMath');
 var global = require('Global');
 
+
 //--------
 var Ptype = cc.Enum({
 	GUN:0,
@@ -50,9 +51,8 @@ cc.Class({
         
 		
 		//渔网图
-		v_netsprite:[cc.SpriteFrame],			
-		
-        v_maxfishnum: 50,      
+		v_netsprite:[cc.SpriteFrame],				
+      
 		
 		//----------------测试
 		
@@ -107,6 +107,34 @@ cc.Class({
 		//  }, this);
 
        // node.on('touchstart', e_TouchDwon, this);	   
+
+		//发送准备完毕消息
+		 var p = {
+			version: 102,
+			method: 5005,
+			seqId: Math.random() * 1000,
+			timestamp: new Date().getTime()
+		};
+    	global.socket.ws.send(JSON.stringify(p));
+
+	   //加载鱼的轨迹数据
+	   	var xhr = new XMLHttpRequest();
+ 		xhr.onreadystatechange = function () {
+     	if (xhr.readyState == 4 && (xhr.status >= 200 && xhr.status < 400)) {
+        	var response = xhr.responseText;
+        	//console.log(response);
+
+			//console.log('----')
+			FishMath.fishpath = JSON.parse(response);
+			//var data = JSON.parse(response);
+			//console.log(data.ver);
+		//	console.log(FishMath.fishpath.trail['1121'][2])
+		
+     	}
+ 	};
+ 	xhr.open("GET", "http://www.foreworld.net/download/trail.json", true);
+ 	xhr.send();
+
    },
     
     start:function(){            
@@ -117,19 +145,38 @@ cc.Class({
     },
 
 	  //消息处理
-    MsgHandle:function(){
+    MsgHandle:function(msg){
 
+		 console.log(msg.data);
+		 switch(msg.method){
+          case 2002:   //1对1 聊天        
+            break;
+         
+          case 3002:  //进入房间消息              
+            break;		  
+		
+		  case 5006://进入场景的玩家已加载完毕
+			break;
+		 
+		  case 5008://鱼同步消息
+			this.SyncFish(msg.data);
+			break;
+
+          default: 
+           // console.log(data)
+            break;       
+        }
     },
 
     update:function(dt){
     //     //每帧处理 网络消息
-    //     if(global.socket.msglist.length < 1) return;
-    //    // console.log('--------------处理消息队列------------------'+ global.socket.msglist.length);
-    //     for( let msg of global.socket.msglist){
-    //         this.MsgHandle();
-    //         console.log(msg);
-    //         global.socket.msglist.pop();
-    //     }
+        if(global.socket.msglist.length < 1) return;
+       // console.log('--------------处理消息队列------------------'+ global.socket.msglist.length);
+        for( let msg of global.socket.msglist){
+            this.MsgHandle(msg);
+            //console.log(msg);
+            global.socket.msglist.pop();
+        }
     },
 	
 	onDestroy :function( ){
@@ -292,26 +339,57 @@ cc.Class({
 			}	
 	},
 	//同步
-	SyncFish:function(event){
-		
-		var f = this.v_fishlayer.children
-		for(var i =0;i<f.length;i++)
-			if(f[i].name == 'fish'+event.detail.name){				
-				//f[i].emit('move',{x:event.detail.x*(cc.Canvas.instance.node.width/2) ,y:event.detail.y*(cc.Canvas.instance.node.height/2),r:event.detail.r);				
-				//f[i].stopAllActions();
-					
-					//boss不设R,只设左右
-				if(event.detail.type >=18)	{
-					if(event.detail.x*(this.node.width/2) > f[i].x) f[i].scaleX =1;
-					else f[i].scaleX =-1;
-					f[i].runAction(cc.moveTo(0.25, event.detail.x*(this.node.width/2) ,event.detail.y*(this.node.height/2)));							
-				}else		
-					f[i].runAction(cc.spawn(cc.moveTo(0.25, event.detail.x*(this.node.width/2) ,event.detail.y*(this.node.height/2)),
-								cc.rotateTo (0.25,event.detail.r)));
-				
-				//console.log('  ---鱼的位置 '+ event.detail.x*(this.node.width/2) +'   '+event.detail.y*(this.node.height/2));
+	SyncFish:function(data){
+		// id: CreatUUID(1),
+		// type: 0,
+		// path: 0,
+		// step: 0,
+		// max: 222,
+		// loop: true,
+		// weight: 15
+	
+		for(let d of data){
+			
+			var ishave = false;
+			for(let f of this.v_fishlayer.children){
+				if(f.name == ( d.id+'' )) {
+					ishave = true;
+					break;
+				}
 			}
+
+			if(!ishave){
+				var fish = cc.instantiate(this.v_fish[ d.type+4]);
+				fish.parent = this.v_fishlayer;		
+				fish.name = d.id+'';		
+				fish.emit('loadpath',{pathid:d.path+'',offstep:d.step});	
+				//fish.emit('loadpath',{pathid:'1121',offstep:d.step});	
+			}	
+			else{
+
+			}	
+		}
 	},
+	//SyncFish:function(event){
+		
+		// var f = this.v_fishlayer.children
+		// for(var i =0;i<f.length;i++)
+		// 	if(f[i].name == 'fish'+event.detail.name){				
+		// 		//f[i].emit('move',{x:event.detail.x*(cc.Canvas.instance.node.width/2) ,y:event.detail.y*(cc.Canvas.instance.node.height/2),r:event.detail.r);				
+		// 		//f[i].stopAllActions();
+					
+		// 			//boss不设R,只设左右
+		// 		if(event.detail.type >=18)	{
+		// 			if(event.detail.x*(this.node.width/2) > f[i].x) f[i].scaleX =1;
+		// 			else f[i].scaleX =-1;
+		// 			f[i].runAction(cc.moveTo(0.25, event.detail.x*(this.node.width/2) ,event.detail.y*(this.node.height/2)));							
+		// 		}else		
+		// 			f[i].runAction(cc.spawn(cc.moveTo(0.25, event.detail.x*(this.node.width/2) ,event.detail.y*(this.node.height/2)),
+		// 						cc.rotateTo (0.25,event.detail.r)));
+				
+		// 		//console.log('  ---鱼的位置 '+ event.detail.x*(this.node.width/2) +'   '+event.detail.y*(this.node.height/2));
+		// 	}
+	//},
 	//捕到
 	GetFish:function(event){
 		let msg = event.detail;
@@ -381,13 +459,9 @@ cc.Class({
 		global.pool_coin.f_PutNode(data.coin);
 		data.text.destroy();
 		//console.log('   加 '+ data.score+' 金币');
-	},    
-	
-    //----------
-    CreateFishGroup:function(){
-        
-    },   
-    
+	},    	
+  
+    //------------
     KillFish:function(seat,fishs){
         
     },
@@ -529,4 +603,16 @@ cc.Class({
 			}, 2);
 		}
 	},
+
+	CreatFishGroup:function(){
+	
+		for(let i=0;i<10;i++){
+		
+			var fish = cc.instantiate(this.v_fish[4]);
+			fish.parent = this.v_fishlayer;	
+			
+			fish.emit('loadpath',{pathid:'1121',offstep:i*10});
+		}
+	}
+
 });

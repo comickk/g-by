@@ -3,7 +3,8 @@ cc.Class({
 
     properties: {
         scrollview:cc.ScrollView,
-        item:cc.Node,
+        content:cc.Node,
+        item:cc.Prefab,
       
     },
 
@@ -11,21 +12,28 @@ cc.Class({
     onLoad: function () {
             this.node.on('hide',this.Hide,this);   
 
-            this.node.on('touchend',function(event){ 
-                console.log('---'+event.target.name);
-            },this);
+            // this.node.on('touchend',function(event){ 
+            //     console.log('---'+event.target.name);
+            // },this);
                 
     },
    
+    //添加一个使用过的名字
     AddItem:function()
     {
         var i = cc.instantiate(this.item);
-        i.parent = this.item.parent;
+        i.parent = this.content;
     },
 
-    Btn_Item:function(event){
+    // //删除一行记录
+    // Btn_DelItem:function(){
 
-        console.log(event.target.name);
-    },
+    // },
+
+    // //
+    // Btn_Item:function(event){
+
+    //     console.log(event.target.name);
+    // },
 
 });

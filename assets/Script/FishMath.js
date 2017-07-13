@@ -1,4 +1,5 @@
 var FishMath = function(){	
+	var fishpath = null;
 
 	this.GetAngle=function(px,py,mx,my){//获得人物中心和鼠标坐标连线，与y轴正半轴之间的夹角     
      
