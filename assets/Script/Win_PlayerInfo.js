@@ -1,3 +1,4 @@
+var global = require('Global');
 cc.Class({
     extends: require("PopWin"),
 
@@ -18,10 +19,18 @@ cc.Class({
     // use this for initialization
     onLoad: function () {
 
-        for(let i=0;i<9;i++)
-            this.SetItem(i,i,i+1);
-      
+        // for(let i=0;i<9;i++)
+        //     this.SetItem(i,i,i+1);      
 
+    },
+
+    start:function(){
+        if(global.myinfo ==  null ) return;
+        this.nick.string = JSON.parse( global.myinfo.extend_data)['nickname'];
+        this.golds.string = global.myinfo.score;
+        this.Diamonds.string = '0';
+
+        //console.log( '--------------'+global.myinfo['tool_'+'1']);
     },
 
     SetItem:function(soltid,itemid,num){

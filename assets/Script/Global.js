@@ -1,7 +1,10 @@
 var Global = function(){  
 
     //  玩家数据类
+    var myinfo = null;
+
     var myseat = 0;
+    var myid =0;
     
    
     // get GameController(){

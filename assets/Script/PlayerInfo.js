@@ -25,7 +25,7 @@ cc.Class({
 
         },this);
 
-        this.node.on('setplayerquit',function(){
+        this.node.on('playerquit',function(){
            this.wait.active = true;
            this.online.active = false;
         },this);

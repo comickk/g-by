@@ -17,7 +17,8 @@ cc.Class({
 
         var self = this;
         
-         var url ="http://192.168.2.173/client/user/login?";
+     var url ="http://118.190.89.153/client/user/login?";
+        //   var url ="http://192.168.2.173/client/user/login?";
        var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function () {
             if (xhr.readyState == 4 && (xhr.status >= 200 && xhr.status < 400)) {

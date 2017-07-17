@@ -2156,7 +2156,7 @@
         "__uuid__": "d398cf70-aef6-4602-81e9-29ae85187fc1"
       }
     ],
-    "v_maxfishnum": 50
+    "_playerinfo": []
   },
   {
     "__type__": "cc.Node",
@@ -5198,8 +5198,8 @@
     "_scaleY": 1,
     "_position": {
       "__type__": "cc.Vec2",
-      "x": 311.9,
-      "y": -34.1
+      "x": -286,
+      "y": -34
     },
     "_skewX": 0,
     "_skewY": 0,
@@ -5645,8 +5645,8 @@
     "_scaleY": 1,
     "_position": {
       "__type__": "cc.Vec2",
-      "x": -13.9,
-      "y": 13.9
+      "x": -14,
+      "y": -14
     },
     "_skewX": 0,
     "_skewY": 0,
@@ -6154,8 +6154,8 @@
     "_scaleY": 1,
     "_position": {
       "__type__": "cc.Vec2",
-      "x": 311.9,
-      "y": -34.1
+      "x": -286,
+      "y": 32
     },
     "_skewX": 0,
     "_skewY": 0,
@@ -6601,8 +6601,8 @@
     "_scaleY": 1,
     "_position": {
       "__type__": "cc.Vec2",
-      "x": -13.9,
-      "y": 13.9
+      "x": -14,
+      "y": -14
     },
     "_skewX": 0,
     "_skewY": 0,
@@ -7110,8 +7110,8 @@
     "_scaleY": 1,
     "_position": {
       "__type__": "cc.Vec2",
-      "x": 311.9,
-      "y": -34.1
+      "x": 312,
+      "y": 32
     },
     "_skewX": 0,
     "_skewY": 0,

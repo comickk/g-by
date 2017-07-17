@@ -32,44 +32,51 @@ cc.Class({
 		this.popwinbg.width = this.node.parent.width;
 		this.popwinbg.height = this.node.parent.height;
 		this.popwinbg.on('touchend',function(){event.stopPropagation();}); 
-
-
     },
 
     f_AddPlayer:function(event){
     	var msg = event.detail;  
 
-    	//若玩家坐号为3  4 号，需转换座号，
-    	if(global.myseat>2){
-    		if(msg.seat > 2) msg.seat-=2;
-    		else msg.seat +=2;
-    	}
-
-    	//激活玩家面板
-    	this.playerInfo[msg.seat-1].emit('playercome',{name:msg.name,gold:msg.gold});
-    	
-		this.btn[5].active = true;
-		this.btn[6].active = true;
+		//若玩家坐号为3  4 号，需转换座号，
+		var seat = Number( msg.seat);		
 		
-		//激活加减炮 锁鱼按钮
-    	this.playerbtn.active = true;
-		this.playerbtn.setPosition( this.pos_btn[ msg.seat-1].getPosition() );
+    	if(global.myseat>2){
+    		if(seat > 2) seat -= 2;
+    		else seat += 2;
+		}		
 
+		//激活玩家面板
+		
+		this.playerInfo[seat-1].emit('playercome',{name:msg.name,gold:msg.gold});
+		
+		//添加自己
+		if(global.myseat ==  msg.seat){
+			this.btn[5].active = true;//锁定
+			this.btn[6].active = true;//冰冻
 
-		this.tipmenu.emit('setdirect',{direct:2});
-		this.tipunlockgun.emit('setdirect',{direct:1});
+			//激活加减炮 
+			this.playerbtn.active = true;
+			this.playerbtn.setPosition( this.pos_btn[ seat-1].getPosition() );
+
+			this.tipmenu.emit('setdirect',{direct:2});//系统菜单
+			this.tipunlockgun.emit('setdirect',{direct:1});//解 锁炮菜单
+
+		}else{//添加其它玩家
+
+		}		
 
     },
      f_DelPlayer:function(event){
     	var msg = event.detail;
 
+		var seat = Number( msg.seat);		
     	//若玩家坐号为3  4 号，需转换座号，
     	if(global.myseat>2){
-    		if(msg.seat > 2) msg.seat-=2;
-    		else msg.seat +=2;
+    		if(seat > 2) seat -= 2;
+    		else seat += 2;
     	}
 
-    	this.playerInfo[msg.seat-1].emit('playerquit');
+    	this.playerInfo[seat-1].emit('playerquit');
     },
 
 	// f_SetGunBtn:function(event ){

@@ -21,6 +21,10 @@ cc.Class({
         win_rotary:cc.Node,
 
         loadprog:cc.Node,
+
+        username:cc.Label,
+        usergold:cc.Label,
+        userdiamond:cc.Label,
     },
 
     // use this for initialization
@@ -38,11 +42,15 @@ cc.Class({
             this.SetRoom(i,false);
         }       
 
+        global.socket.controller = this;
        // this.win_rotary.active = true;
     },
 
     start:function(){
-        
+        //设置玩家基本信息
+        this.username.string = JSON.parse( global.myinfo.extend_data)['nickname'];
+        this.usergold.string =global.myinfo.score;
+        this.userdiamond.string='0';
         
     },
 
@@ -53,19 +61,34 @@ cc.Class({
           case 2002: {  //1对1 聊天
            // random();
 
-            (function(){
-              console.log(msg)
-            })();
-
             break;
           }
           case 3002: { //进入房间消息
+          
+            this.EnterGame(msg.data);
+            break;
+          }
+          default: {
+           // console.log(data)
+            break;
+          }
+        }
+    },
 
-            (function(){             
-              console.log(msg.data)
-            })();
+    EnterGame:function(data ){
+         //启动加载捕鱼场景
+            var info = data[0];//所在组的所有人的信息
+            var seat = data[1];//所在组的所有人坐位号    
 
-            //启动加载捕鱼场景
+            for(let i=0;i<seat.length;i+=2){
+                          
+                //取得自己的坐位号
+                if( global.myinfo != null && seat[i+1].split('::')[0] == global.myid  )	                         
+                    global.myseat = Number(seat[i]);	                       
+            }
+
+             //console.log('---------'+global.myseat +'  '+global.myid);
+
             this.loadprog.active = true;
             var loadsp = this.loadprog.children[2].getComponent(cc.Sprite);
             cc.loader.onProgress = function (completedCount, totalCount, item) {
@@ -78,26 +101,18 @@ cc.Class({
                     cc.loader.onProgress=null;
                    cc.director.loadScene('game_base');
             });
-
-            break;
-          }
-          default: {
-           // console.log(data)
-            break;
-          }
-        }
     },
 
-    update:function(dt){
-        //每帧处理 网络消息
-        if(global.socket.msglist.length < 1) return;
-       // console.log('--------------处理消息队列------------------'+ global.socket.msglist.length);
-        for( let msg of global.socket.msglist){
-            this.MsgHandle(msg);
+    // update:function(dt){
+    //     //每帧处理 网络消息
+    //     if(global.socket.msglist.length < 1) return;
+    //    // console.log('--------------处理消息队列------------------'+ global.socket.msglist.length);
+    //     for( let msg of global.socket.msglist){
+    //         this.MsgHandle(msg);
            
-            global.socket.msglist.pop();
-        }
-    },
+    //         global.socket.msglist.pop();
+    //     }
+    // },
 
     Btn_Fish:function(){
         //console.log('快速开始游戏');

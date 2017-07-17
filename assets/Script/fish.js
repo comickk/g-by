@@ -26,7 +26,7 @@ cc.Class({
 
 			_isboss:false,
 
-			_pathID:'001',
+			_pathID:0,
 			//_path:[],
 			_offstep:0,//轨迹偏移,  从第几个结点开始
 			_isloop:true,//是否循环轨迹
@@ -80,7 +80,7 @@ cc.Class({
 		//读取指定轨迹文件
 		this.node.on('loadpath',function(event){
 				
-			this.LoadPath(event.detail.pathid,event.detail.offstep);
+			this.LoadPath(event.detail.pathid,event.detail.offstep,event.detail.isloop);
 		},this);
 
 		//按轨迹移动
@@ -158,21 +158,22 @@ cc.Class({
 	},
 
 	//加载轨迹
-	LoadPath:function(pathid,offstep){	
+	LoadPath:function(pathid,offstep,isloop){	
 
 		this._pathID = pathid;	
 		this._offstep = offstep;
 		this._step = this._offstep+1;
+		this._isloop = isloop;
 
 		//设定初始位置 
-		var fp =  FishMath.fishpath.trail[this._pathID][this._offstep];
+		var fp =  FishMath.fishpath.data[this._pathID][this._offstep];
 		if(!isNaN(fp[0])){
 			this.node.setPosition(fp[0]*this._width, fp[1]*this._height);
 			this.node.rotation = fp[2];
 		}
 
 		//开始按轨迹动运
-		if( FishMath.fishpath.trail[this._pathID].length > 1 ){
+		if( FishMath.fishpath.data[this._pathID].length > 1 ){
 				this.schedule(function() {
 					this.FishMove();
  				}, this._steplen);
@@ -221,14 +222,18 @@ cc.Class({
 		//if(!isNaN(fp[0])){
 
 		//结束线路，重新开始
-		if(this._step > FishMath.fishpath.trail[this._pathID].length-1 ) {
+		if(this._step > FishMath.fishpath.data[this._pathID].length-1 ) {
+			if(this._isloop){
 			this._step = 1;
 			//恢复轨迹初始位置
-			fp =  FishMath.fishpath.trail[this._pathID][0];
+			fp =  FishMath.fishpath.data[this._pathID][0];
 			this.node.setPosition(fp[0]*this._width, fp[1]*this._height);
 			this.node.rotation = fp[2];
+			}else{//不循环删除
+				this.node.destroy();
+			}
 		}else{
-			fp = FishMath.fishpath.trail[this._pathID][this._step];
+			fp = FishMath.fishpath.data[this._pathID][this._step];
 			this.node.runAction(cc.spawn(cc.moveTo(this._steplen, fp[0]*this._width, fp[1]*this._height), 
 			cc.rotateTo (this._steplen,fp[2])));
 		}

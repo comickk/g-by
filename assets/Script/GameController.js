@@ -51,9 +51,10 @@ cc.Class({
         
 		
 		//渔网图
-		v_netsprite:[cc.SpriteFrame],				
-      
+		v_netsprite:[cc.SpriteFrame],			
+	  
 		
+		_playerinfo:[],
 		//----------------测试
 		
 		//--------------------
@@ -61,6 +62,8 @@ cc.Class({
     // use this for initialization
     onLoad: function () {         
 		global.game = this.node;
+		//global.myseat =0;
+
         this.node.width= cc.Canvas.instance.node.width;
         this.node.height = cc.Canvas.instance.node.height;
          
@@ -108,6 +111,7 @@ cc.Class({
 
        // node.on('touchstart', e_TouchDwon, this);	   
 
+		global.socket.controller = this;
 		//发送准备完毕消息
 		 var p = {
 			version: 102,
@@ -132,34 +136,52 @@ cc.Class({
 		
      	}
  	};
- 	xhr.open("GET", "http://www.foreworld.net/download/trail.json", true);
+	// xhr.open("GET", "http://192.168.2.173/assets/fish.trail.json", true);
+	 xhr.open("GET", "http://118.190.89.153/assets/fish.trail.json", true);
  	xhr.send();
 
    },
     
     start:function(){            
-    	//初始化炮，跟据座位 设置炮位
-    	global.myseat =3;
-	    this.AddGun(global.myseat);
-	 	if(global.myseat > 2) 	this.node.rotation =180;		
+    	// //初始化炮，跟据座位 设置炮位
+    	// global.myseat =3;
+	    // this.AddGun(global.myseat);
+		  if(global.myseat>0 && global.myseat > 2) 	this.node.rotation =180;					
+		 
     },
 
 	  //消息处理
     MsgHandle:function(msg){
 
-		 console.log(msg.data);
+		 //console.log(msg.data);
 		 switch(msg.method){
           case 2002:   //1对1 聊天        
             break;
          
-          case 3002:  //进入房间消息              
-            break;		  
+		  case 3002:  //进入房间消息     		
+			break;			
+
+		  case 3006://玩家退出
+			this.DelGun(msg.data);
+			break;
 		
+		case 5002:	//玩家发射子弹
+			this.PlayerShot(msg.data);
+		break;
+
 		  case 5006://进入场景的玩家已加载完毕
+			//console.log('----------新建炮台--------------');    
+			//console.log(msg.data);     
+			this.AddGun(msg.data);
 			break;
 		 
 		  case 5008://鱼同步消息
 			this.SyncFish(msg.data);
+			break;
+		
+		 case 5010://鱼潮
+			//console.log('----------切换场景啦--------------');
+			this.SwitchMap();
 			break;
 
           default: 
@@ -168,16 +190,16 @@ cc.Class({
         }
     },
 
-    update:function(dt){
-    //     //每帧处理 网络消息
-        if(global.socket.msglist.length < 1) return;
-       // console.log('--------------处理消息队列------------------'+ global.socket.msglist.length);
-        for( let msg of global.socket.msglist){
-            this.MsgHandle(msg);
-            //console.log(msg);
-            global.socket.msglist.pop();
-        }
-    },
+    // update:function(dt){
+    // //     //每帧处理 网络消息
+    //     if(global.socket.msglist.length < 1) return;
+    //    // console.log('--------------处理消息队列------------------'+ global.socket.msglist.length);
+    //     for( let msg of global.socket.msglist){
+    //         this.MsgHandle(msg);
+    //         //console.log(msg);
+    //         global.socket.msglist.pop();
+    //     }
+    // },
 	
 	onDestroy :function( ){
 
@@ -187,31 +209,114 @@ cc.Class({
 		//global.pool_coin.destroy();
 		//global.pool_bullet.destroy();
 	},		
-	AddGun:function(seat){
-		//console.log('---添加一个玩家的炮台' );
-		let s = seat-1;
-		this.gunseat[s].active = true;			
+	AddGun:function(data){
+		var userinfo = data[0];
+		var group_info = data[1];
+		
+		data = data[2];//  座号1 ID1  座号2 ID2    座号3 ID3 .......
 
-		this.v_guns[s] = cc.instantiate(this.prefab[Ptype.GUN]);      
-		this.v_guns[s].getComponent("gun").f_InitGun(seat, this.node,this.gunseat[s].rotation-90,
-		 									              this.gunseat[s].x,this.gunseat[s].y);
+		
+		//var newplayer=0;
+		//console.log( '----'+ global.myseat);
 
-		//this.gunseat[s].getChildByName("gun_lv_bg").zIndex = -1;
+		for(let i=0;i<data.length;i+=2){
 
-		global.ui.emit('addplayer',{seat:seat,name:'猫一巴1号',gold:99999});
+			//s检测个人信息和坐位号是否合法
+			console.log(  global.myinfo);
+			if(global.myinfo==null || global.myseat<0 || global.myseat >4) {
+			
+				return false;}
+			//检查是否是自己
+			//if( global.myinfo != null && data[i+1].split('::')[0] == global.myinfo.user_id  ){	
+			if(global.myseat == Number(data[i])){			
+				
+				// if(global.myseat == 0){ //已设置过不再执行
+				// 	global.myseat = data[i];					
+				// 	if(global.myseat > 2) 	this.node.rotation =180;//自己座位号大于2 ，反转画面
+				// }
+			
+			}else{
+				//添加其它玩家信息
+				var ishave = false;
+				for(let p of this._playerinfo){					
+					if(p.seat == data[i] ) {
+						ishave = true;						
+						break;
+					}
+				}
+				if(!ishave){//添加未保存过的玩家信息					
+					this._playerinfo.push({
+						seat:data[i],
+						id:data[i+1].split('::')[0]
+					});
+				}
+			}		
+			var s = Number(data[i]-1);
+			if(this.gunseat[s].active == false ){
+				//console.log('---添加一个玩家的炮台' );			
+				this.gunseat[s].active = true;			
+
+				this.v_guns[s] = cc.instantiate(this.prefab[Ptype.GUN]);      
+				this.v_guns[s].getComponent("gun").f_InitGun(data[i], this.node,this.gunseat[s].rotation-90,
+															this.gunseat[s].x,this.gunseat[s].y);
+				//this.gunseat[s].getChildByName("gun_lv_bg").zIndex = -1;
+				
+				global.ui.emit('addplayer',{seat:data[i],name:'测试座号'+data[i],gold:99999}); 				
+			}
+		}	
+		
+		return true;
 	},
 	
 	//去掉一个玩家的炮台
-	DelGun:function(seat){		
-		this.v_guns[seat-1].destroy();
-		this.v_guns[seat-1]=null;
-		this.gunseat[seat-1].active = false;	
+	DelGun:function(data){	
+		var seat = 0;	
+		//查找id对应的玩家坐位号
+		for(let p of this._playerinfo){					
+			if(p.id == data ) {
+				seat = p.seat;					
+				break;
+			}
+		}
+		if( seat == 0 ) 
+			return false;
+		else{
+			this.v_guns[seat-1].destroy();
+			this.v_guns[seat-1]=null;
+			this.gunseat[seat-1].active = false;
+			
+			//删除对应ui
+			global.ui.emit('delplayer',{seat:seat}); 	
+			return true;	
+		}	
 	},		
 
     // called every frame, uncomment this function to activate update callback
     // update: function (dt) {
 
     // },
+
+	PlayerShot:function(data){
+		var info ={};
+		 for( let i =0 ;i<data.length;i++)
+			info[data[i]]= data[++i]; 
+		
+		 //忽略自己发的
+		if(info.user_id == global.myid){
+
+		} else{
+
+			console.log(info);
+			for(let p of this._playerinfo){
+				//取id 对应 座号
+				console.log(p.id+'    '+ info.user_id);
+				if(p.id == info.user_id ){
+					this.v_guns[p.seat-1].emit( 'otherfire' ,{ x:info.x*cc.Canvas.instance.node.width,y:info.y*cc.Canvas.instance.node.height }  );
+				}
+			}
+
+		}          
+	},
 
 	Touch(event){		
 		//console.log('-----------touch'+ event.getLocationX()+'    '+event.getLocationY());
@@ -225,7 +330,7 @@ cc.Class({
 
 		this.v_guns[global.myseat-1].emit( 'fire' ,{ x:v2.x,y:v2.y }  );
 					
-		//this.testgun.emit( 'otherfire' ,{ x:v2.x,y:v2.y }  );//{ x:event.getLocationX(),y:event.getLocationY() } );        
+		//this.testgun.emit( 'otherfire' ,{ x:v2.x,y:v2.y }  );//{ x:event.getLocationX(),y:event.getLocationY() } );      	
 	},
 	
 	TouchEnd(event){
@@ -263,20 +368,22 @@ cc.Class({
 									  x:event.detail.x/(this.node.width/2),y:event.detail.y/(this.node.height/2)});
 					
 		/*//方式二    检测鱼网炸开范围内的鱼	--------------------------------	
-		let netv = cc.v2(event.detail.x,event.detail.y);
-		let dis = 0;
-		let fishs = this.v_fishlayer.children;
-		let catchfish = new Array();
+		var netv = cc.v2(event.detail.x,event.detail.y);
+		var dis = 0;
+		var fishs = this.v_fishlayer.children;
+		var catchfish = [];
 		
-		for(let i=0 ;i< fishs.length ;i++)
+		for(let f of fishs)
 		{
-			dis = cc.pDistance(netv,cc.v2(fishs[i].x,fishs[i].y )) ;
+			dis = cc.pDistance(netv,cc.v2(f.x,f.y )) ;
 			
 			//最小鱼网半径 55，每级加 7
 			if(dis < 55 + 7*event.detail.type )
 			{
-				catchfish.push(fishs[i].name);
+				catchfish.push(f.name);
 				
+				//
+
 				//本地模拟
 				// ---------抓 到鱼 取得金币--------------
 				if( cc.randomMinus1To1() >0 )
@@ -347,22 +454,41 @@ cc.Class({
 		// max: 222,
 		// loop: true,
 		// weight: 15
-	
+
+		var a = {};
+
+
+		// var str ='{';	
+		// var i=0;
+		for(let f of this.v_fishlayer.children){
+			// str +='"'+ f.name+'":'+i+',';
+			// i++;
+
+			a[f.name] = i;
+		}
+		// str +='}';
+
+		// console.log(str);
+		// var list  =JSON.parse(str);
+
+		var list = a;
+
 		for(let d of data){
 			
-			var ishave = false;
-			for(let f of this.v_fishlayer.children){
-				if(f.name == ( d.id+'' )) {
-					ishave = true;
-					break;
-				}
-			}
+			// var ishave = false;
+			// for(let f of this.v_fishlayer.children){
+			// 	if(f.name == ( d.id+'' )) {
+			// 		ishave = true;
+			// 		break;
+			// 	}
+			// }
 
-			if(!ishave){
+			//if(!ishave){
+			if( typeof(list[d.id+'']) == 'undefined'){
 				var fish = cc.instantiate(this.v_fish[ d.type+4]);
 				fish.parent = this.v_fishlayer;		
 				fish.name = d.id+'';		
-				fish.emit('loadpath',{pathid:d.path+'',offstep:d.step});	
+				fish.emit('loadpath',{pathid:d.path,offstep:d.step,isloop:d.loop});	
 				//fish.emit('loadpath',{pathid:'1121',offstep:d.step});	
 			}	
 			else{
@@ -613,6 +739,10 @@ cc.Class({
 			
 			fish.emit('loadpath',{pathid:'1121',offstep:i*10});
 		}
+	},
+
+	test:function(data){
+		console.log('============================='+data.method);
 	}
 
 });

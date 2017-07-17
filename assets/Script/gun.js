@@ -64,7 +64,9 @@ cc.Class({
 		v_range:{
 			default:0,
 			visible:false
-		}  		
+		}, 		
+
+		_mousepos:cc.v2,
     },
 	
     // use this for initialization
@@ -139,9 +141,10 @@ cc.Class({
 		var wy = this.v_ch/2+this.node.y;
 
 		//鼠标接触点
-		var mp = cc.v2(event.detail.x,event.detail.y);
+		this._mousepos = cc.v2(event.detail.x,event.detail.y);
+		//console.log('----自己开火'+this._mousepos.x+'  '+this._mousepos.y);
 		
-		var r = FishMath.GetAngle(wx,wy,mp.x,mp.y);
+		var r = FishMath.GetAngle(wx,wy,this._mousepos.x,this._mousepos.y);
 		
 		
 		if( this.node.y >0  && r <= 0 )return;
@@ -173,6 +176,22 @@ cc.Class({
 		
         this.v_anim.play("gun"+this.v_type);  
 		cc.audioEngine.play(this.v_sound[0], false, 1);
+
+		//发送开火消息
+		var p = {
+			version: 102,
+			method: 5001,
+			seqId: Math.random() * 1000,
+			timestamp: new Date().getTime(),
+
+			data: JSON.stringify({
+				id: new Date().getTime(),
+				x: this._mousepos.x/cc.Canvas.instance.node.width,
+				y: this._mousepos.y/cc.Canvas.instance.node.height,
+				level: 1
+			})
+		};
+		global.socket.ws.send(JSON.stringify(p));  
 		
 		//计算炮弹的目标点		
 		var tp = FishMath.GetFirePos(this.node.rotation,this.node.x,this.node.y,this.v_cw/2,this.v_ch/2);			
@@ -202,29 +221,41 @@ cc.Class({
 	},
 	
 	f_OtherFire(event){
-		//console.log('-----------my gun fire' );	
+	
 		var wx = this.v_cw/2+this.node.x;
 		var wy = this.v_ch/2+this.node.y;
 
 		//鼠标接触点
 		var mp = cc.v2(event.detail.x,event.detail.y);
+
+		//console.log('-----------other gun fire' +mp.x+'   '+mp.y);	
 		
 		var r = FishMath.GetAngle(wx,wy,mp.x,mp.y);
 		this.node.rotation = r;	
 		
 		this.v_anim.play("gun"+this.v_type);  
+		cc.audioEngine.play(this.v_sound[0], false, 1);
 	
+		//计算炮弹的目标点
 		var tp = FishMath.GetFirePos(this.node.rotation,this.node.x,this.node.y,this.v_cw/2,this.v_ch/2);	
 		
-		//执行动作
-		var action = cc.moveTo(tp[2]/this.v_bulletspeed,tp[0],tp[1]);       		
+		   		
 		
         //生成炮弹(从资源池中取并初始化)
 		var v = this.v_bulletpos.convertToWorldSpace (cc.v2(this.v_bulletpos.x, this.v_bulletpos.y));
-		var v2 =this.node.parent.convertToWorldSpace(v);
-        global.pool_bullet.f_GetNode( this.node.parent, -(this.v_cw/2) +v2.x,-(this.v_ch/2)+v2.y ,this.node.rotation,
-									  this.v_bulletsprite[this.v_type-1],action).getComponent("bullet").f_InitBullet(		
-																this.v_type,this.v_seat,this.v_bulletspeed);	
+		var v2 =this.node.parent.convertToWorldSpace(v);       
+		
+		var sp_bullet = global.pool_bullet.f_GetNode( 	this.node.parent, -(this.v_cw/2) +v2.x,-(this.v_ch/2)+v2.y ,this.node.rotation,
+														this.v_bulletsprite[this.v_type-1]).getComponent("bullet");													  
+		sp_bullet.f_InitBullet(	this.v_type,this.v_seat,this.v_bulletspeed);	
+
+		//执行动作
+		//var action = cc.moveTo(tp[2]/this.v_bulletspeed,tp[0],tp[1]);    
+
+			//执行动作		  
+		var finished = cc.callFunc(function(){sp_bullet.ismoveing = false;},sp_bullet);
+		sp_bullet.node.runAction(cc.sequence(cc.moveTo(tp[2]/this.v_bulletspeed,tp[0],tp[1]),finished));
+		sp_bullet.ismoveing = true;
 	},
     
 	//设置炮类型

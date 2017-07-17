@@ -348,7 +348,7 @@
     "node": {
       "__id__": 1
     },
-    "_enabled": false,
+    "_enabled": true,
     "transition": 0,
     "pressedColor": {
       "__type__": "cc.Color",
@@ -366,7 +366,9 @@
     },
     "duration": 0.1,
     "zoomScale": 1.2,
-    "pressedSprite": null,
+    "pressedSprite": {
+      "__uuid__": "55d895ae-230b-4b42-9f5f-617d99b184a3"
+    },
     "hoverSprite": null,
     "clickEvents": [
       {
@@ -412,9 +414,11 @@
       "__id__": 1
     },
     "_enabled": true,
+    "selectwin": null,
     "userID": {
       "__id__": 3
-    }
+    },
+    "_pass": ""
   },
   {
     "__type__": "cc.PrefabInfo",

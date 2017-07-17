@@ -6,10 +6,13 @@ function gamesocket(){
 }
    gamesocket.prototype.ws=null;
    gamesocket.prototype.msglist=[];
+   gamesocket.prototype.controller =null;
 
    gamesocket.prototype.Init = function( server,code  ){
         var self =this;
-        this.ws = new WebSocket('ws://192.168.2.173/s/'+server+'/');
+        this.ws = new WebSocket('ws://118.190.89.153/s/'+server+'/');
+      //   this.ws = new WebSocket('ws://192.168.2.173/s/'+server+'/');
+      
         this.ws.binaryType = 'arraybuffer';
 
         this.ws.onopen = function(evt){
@@ -37,6 +40,9 @@ function gamesocket(){
 
             data = JSON.parse(data);
 
+            if( self.controller != null)
+                self.controller.MsgHandle(data);           
+
           //  console.log(data);
 
         //     var data = evt.data;
@@ -50,7 +56,8 @@ function gamesocket(){
            
         //     var _user = proto.gws.model.UserProtobuf;
         //     self.msglist.push( _user.deserializeBinary(result.getData()) );  
-         self.msglist.push( data);           
+
+            // self.msglist.push( data);           
         };
 
         this.ws.onclose = function(evt){
@@ -71,7 +78,12 @@ function gamesocket(){
 
     gamesocket.prototype.ClearMsg = function(){
             this.ws.close();
-    }
+    }   
+   
+    gamesocket.prototype.MsgHandle = null;
+    // gamesocket.prototype.MsgHandle = function(ttt,data){
+    //     ttt(data);
+    // }
 
 var gs = new gamesocket();  
 module.exports =gs;
