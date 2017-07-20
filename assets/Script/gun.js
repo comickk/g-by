@@ -177,7 +177,9 @@ cc.Class({
         this.v_anim.play("gun"+this.v_type);  
 		cc.audioEngine.play(this.v_sound[0], false, 1);
 
-		//发送开火消息
+		var bid = new Date().getTime()+'';
+		
+		//发送开火消息--------------
 		var p = {
 			version: 102,
 			method: 5001,
@@ -185,13 +187,14 @@ cc.Class({
 			timestamp: new Date().getTime(),
 
 			data: JSON.stringify({
-				id: new Date().getTime(),
+				id: bid,
 				x: this._mousepos.x/cc.Canvas.instance.node.width,
 				y: this._mousepos.y/cc.Canvas.instance.node.height,
 				level: 1
 			})
 		};
 		global.socket.ws.send(JSON.stringify(p));  
+		//------------------------------
 		
 		//计算炮弹的目标点		
 		var tp = FishMath.GetFirePos(this.node.rotation,this.node.x,this.node.y,this.v_cw/2,this.v_ch/2);			
@@ -204,6 +207,8 @@ cc.Class({
 													  this.v_bulletsprite[this.v_type-1]).getComponent("bullet");
 													  
 		sp_bullet.f_InitBullet(	this.v_type,this.v_seat,this.v_bulletspeed);	
+		sp_bullet.node.name = bid;
+
 		if(this.v_locktarget != null) {//sp_bullet.emit('settarget',{name:this.v_locktarget.name});
 			sp_bullet.v_locktarget = this.v_locktarget.name;
 			sp_bullet.v_isrebound = false;//设定目标的子弹不反弹
@@ -248,7 +253,7 @@ cc.Class({
 		var sp_bullet = global.pool_bullet.f_GetNode( 	this.node.parent, -(this.v_cw/2) +v2.x,-(this.v_ch/2)+v2.y ,this.node.rotation,
 														this.v_bulletsprite[this.v_type-1]).getComponent("bullet");													  
 		sp_bullet.f_InitBullet(	this.v_type,this.v_seat,this.v_bulletspeed);	
-
+		sp_bullet.node.name = event.detail.id;
 		//执行动作
 		//var action = cc.moveTo(tp[2]/this.v_bulletspeed,tp[0],tp[1]);    
 

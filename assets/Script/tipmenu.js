@@ -1,4 +1,4 @@
-//var global = require('Global');
+var global = require('Global');
 cc.Class({
     extends: cc.Component,
 
@@ -13,12 +13,12 @@ cc.Class({
        btn_back:cc.Node,
 
        sx:{
-        default:0,      
-        visible:false
+            default:0,      
+            visible:false
        },
        tx:{
-        default:0,      
-        visible:false
+            default:0,      
+            visible:false
        },
        out:{    //是否弹出了
             default:false,      
@@ -66,9 +66,10 @@ cc.Class({
         this.btn_set.on('touchend',function(){},this);
        
         this.btn_back.on('touchend',function(){
-            cc.director.preloadScene('hall', function () {
-            cc.director.loadScene('hall');
-        });
+            // cc.director.preloadScene('hall', function () {
+            // cc.director.loadScene('hall');           
+            //});
+         global.ui.emit('exitgame');
         },this);
     },
 

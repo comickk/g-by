@@ -31,8 +31,9 @@ cc.Class({
 			_offstep:0,//轨迹偏移,  从第几个结点开始
 			_isloop:true,//是否循环轨迹
 			_step:1,//默认轨迹时间点，0为初始位置
-			_steplen:0.25,//轨迹步长
+			_steplen:0.3,//轨迹步长
 
+			_isice:false,
 			_width:0,
 			_height:0,
     },
@@ -57,6 +58,14 @@ cc.Class({
                               anim.play(anim.getClips()[1].name);
         },this);
 
+		this.node.on('synchro',function(event){
+			//console.log(this);
+			this._step = event.detail.step;
+			//console.log('-----'+ this._step + '  ' + event.detail.step);
+		},this);
+
+		this.node.on('freeze',this.Freeze,this);
+		this.node.on('unfreeze',this.UnFreeze,this);
 		
 		var animdead = anim.getAnimationState(anim.getClips()[1].name);
 		animdead.on('finished',   this.f_FishDead ,   this);
@@ -138,6 +147,11 @@ cc.Class({
 			console.log('--no fish run anim--');
 			this.body.runAction(cc.fadeOut(0.8));
 		}
+
+		if(this.v_islock )	//该鱼在被锁定情况下，通知取消锁定			
+			global.game.emit('cancellock');		
+		else
+			if(this.v_select) global.game.emit('touchend');	
 
 		this.scheduleOnce(function() {
      		this.node.destroy();
@@ -230,6 +244,11 @@ cc.Class({
 			this.node.setPosition(fp[0]*this._width, fp[1]*this._height);
 			this.node.rotation = fp[2];
 			}else{//不循环删除
+				
+				if(this.v_islock )	//该鱼在被锁定情况下，通知取消锁定			
+					global.game.emit('cancellock');		
+				else
+					if(this.v_select) global.game.emit('touchend');	
 				this.node.destroy();
 			}
 		}else{
@@ -237,8 +256,31 @@ cc.Class({
 			this.node.runAction(cc.spawn(cc.moveTo(this._steplen, fp[0]*this._width, fp[1]*this._height), 
 			cc.rotateTo (this._steplen,fp[2])));
 		}
-		this._step++;
-				
+		if(!this._isice)
+			this._step++;				
+	},
+
+	Freeze:function(){
+		this._isice = true;
+
+		//停止游动 动画
+		var anim = this.body.getComponent(cc.Animation);	
+		
+		if(cc.isValid(anim.getClips()[0])){
+			var animclip = anim.getClips()[0];	
+			anim.pause(animclip.name);
+		}//else console.log('你妈B,没找到动画体');		
+	},
+	UnFreeze:function(){
+		this._isice = false;
+
+		//停止游动 动画
+		var anim = this.body.getComponent(cc.Animation);	
+		
+		if(cc.isValid(anim.getClips()[0])){
+			var animclip = anim.getClips()[0];	
+			anim.resume(animclip.name);
+		}//else console.log('没找到动画体');	
 	},
     
     test:function(event ) {

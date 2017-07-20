@@ -11,6 +11,9 @@ cc.Class({
         Diamonds:cc.Label,
         bag:cc.Node,
 
+        viplv:cc.Label,
+        viptime:cc.Label,
+
         items:[cc.Sprite],        
         itemimg:[cc.SpriteFrame],
         itemnum:cc.Prefab,
@@ -26,11 +29,16 @@ cc.Class({
 
     start:function(){
         if(global.myinfo ==  null ) return;
-        this.nick.string = JSON.parse( global.myinfo.extend_data)['nickname'];
+        this.nick.string = global.myinfo.nickname;
         this.golds.string = global.myinfo.score;
         this.Diamonds.string = '0';
 
         //console.log( '--------------'+global.myinfo['tool_'+'1']);
+
+        for(let i =0;i<9;i++){
+           // global.myinfo.tool_1 = 
+            this.SetItem(i,i,global.myinfo['tool_'+i.toString()]);
+        }
     },
 
     SetItem:function(soltid,itemid,num){

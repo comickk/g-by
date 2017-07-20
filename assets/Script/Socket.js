@@ -4,13 +4,17 @@ function gamesocket(){
 
 
 }
+    gamesocket.prototype.URL = '192.168.2.173';//'118.190.89.153';
+
+    //gamesocket.prototype.URL = '118.190.89.153';
    gamesocket.prototype.ws=null;
    gamesocket.prototype.msglist=[];
    gamesocket.prototype.controller =null;
+   
 
    gamesocket.prototype.Init = function( server,code  ){
         var self =this;
-        this.ws = new WebSocket('ws://118.190.89.153/s/'+server+'/');
+        this.ws = new WebSocket('ws://'+ this.URL+'/s/'+server+'/');
       //   this.ws = new WebSocket('ws://192.168.2.173/s/'+server+'/');
       
         this.ws.binaryType = 'arraybuffer';
@@ -73,7 +77,7 @@ function gamesocket(){
 
     gamesocket.prototype.Close = function(){
         //console.log('--清空消息队列--');
-           this.msglist.splice(0,this.msglist.length);
+        //   this.msglist.splice(0,this.msglist.length);
     }
 
     gamesocket.prototype.ClearMsg = function(){
@@ -84,6 +88,14 @@ function gamesocket(){
     // gamesocket.prototype.MsgHandle = function(ttt,data){
     //     ttt(data);
     // }
+    gamesocket.prototype.MsgToObj = function( data  ){
+        var obj = {};
+
+		for( let i =0 ;i<data.length;i++)
+            obj[data[i]] = data[++i]; 
+        
+        return obj;
+    }
 
 var gs = new gamesocket();  
 module.exports =gs;

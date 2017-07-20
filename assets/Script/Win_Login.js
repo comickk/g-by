@@ -1,3 +1,4 @@
+var global = require('Global');
 cc.Class({
     extends: require("PopWin"),
 
@@ -17,8 +18,9 @@ cc.Class({
 
         var self = this;
         
-     var url ="http://118.190.89.153/client/user/login?";
-        //   var url ="http://192.168.2.173/client/user/login?";
+   
+        var url ='http://'+global.socket.URL +'/client/user/login?';
+     // var url ="http://192.168.2.173/client/user/login?";
        var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function () {
             if (xhr.readyState == 4 && (xhr.status >= 200 && xhr.status < 400)) {
@@ -37,11 +39,12 @@ cc.Class({
     },
 
     Btn_OK:function(){      
-        
+        if(this.username.string == '' || this.userpass.string=='') return;
         var arg ="user_name="+this.username.string.trim();
         arg += "&user_pass="+this.userpass.string.trim();        
 
         this.Send(arg);
+        this.Hide();
     }
    
 });

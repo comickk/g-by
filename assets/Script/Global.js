@@ -5,6 +5,8 @@ var Global = function(){
 
     var myseat = 0;
     var myid =0;
+    var backid =null;
+    var mygunlv =1;    
     
    
     // get GameController(){

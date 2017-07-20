@@ -33,15 +33,18 @@ cc.Class({
             event.stopPropagation();
          },this);
 
-        var namelist = JSON.parse(cc.sys.localStorage.getItem('userData'));
-
-        if(namelist.length >0 ){
+        var namelist = JSON.parse(cc.sys.localStorage.getItem('userData'));        
+        
+        // if(namelist==null){
+        //     console.log('无法取得账号记录');
+        //     return;
+        // }
+        if( namelist!=null && namelist.length >0 ){
           
             for(let n of namelist){
                this.AddItem(n.id,n.pass);
             }          
-        }      
-                
+        }                         
     },
    
     //添加一个使用过的名字
@@ -54,10 +57,11 @@ cc.Class({
     },
 
     Btn_Ok:function(){
-
-        this.node.emit('hide');
+       
         if(this._currbg!= null)
             this.login.emit('selectid');
+
+         this.Hide();
     }
     // //删除一行记录
     // Btn_DelItem:function(){

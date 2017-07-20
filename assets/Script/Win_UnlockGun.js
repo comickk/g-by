@@ -5,7 +5,7 @@ cc.Class({
        
        item:cc.Prefab,
        layout:cc.Node,
-       currlv:3,
+       currlv:1,
     },
 
     // use this for initialization

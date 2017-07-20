@@ -1,3 +1,4 @@
+var global = require('Global');
 cc.Class({
     extends: require("PopWin"),
 
@@ -10,13 +11,17 @@ cc.Class({
 
       btn_cancel:cc.Node,
       btn_exit:cc.Node,
+
+      _scene:'',
     },
 
     // use this for initialization
     onLoad: function () {
-
-        this.node.on('settip',function(event){ //type: 弹窗类型1（提示信息） 2确认关闭 msg:
+        this._scene = '';
+        this.node.on('settip',function(event){ //type: 弹窗类型2（提示信息） 1确认关闭 msg:
            if(event.detail.type == 1){
+               this._scene = event.detail.msg;
+               
                  this.btn_cancel.active = true;
                this.btn_exit.active = true;
                this.btn_accept.active = false;
@@ -38,8 +43,24 @@ cc.Class({
         },this);   
 
         this.btn_exit.on('touchend',function(){
-            //退出程序
-            cc.game.end();
-        });
+            //退出程序                     
+           var that = this;
+            if(this._scene =='')
+                cc.game.end();
+            else{             
+                    var p = {
+                        version: 102,
+                        method: 3005,                       
+                        seqId: Math.random() * 1000,
+                        timestamp: new Date().getTime(),                     
+                    };
+                    global.socket.ws.send(JSON.stringify(p));	
+        
+                    cc.director.preloadScene(that._scene, function () {
+                    cc.audioEngine.stopAll();
+                    cc.director.loadScene(that._scene);   
+                })
+            }
+        },this);
     },   
 });

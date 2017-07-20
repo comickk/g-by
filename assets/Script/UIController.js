@@ -11,6 +11,7 @@ cc.Class({
 		
 		popwinbg:cc.Node,
 		win_unlockgun:cc.Node,
+		win_tip:cc.Node,
 
 		tipmenu:cc.Node,
 		tipunlockgun:cc.Node,
@@ -18,19 +19,56 @@ cc.Class({
 
 		//mybg:cc.Node,
 		//test var
-		guntype:1
+		//guntype:1
     },
 
     // use this for initialization
     onLoad: function () {
 	
 		global.ui = this.node;		
+		this.popwinbg.width = this.node.parent.width;
+		this.popwinbg.height = this.node.parent.height;
 
 		this.node.on('addplayer',this.f_AddPlayer,this);
 		this.node.on('delplayer',this.f_DelPlayer,this);
+		this.node.on('setplayer',this.SetPlayer,this);
+		this.node.on('settools',function(){
+			this.btn[5].getChildByName('num').getComponent(cc.Label).string= global.myinfo.tool_2;
+			this.btn[6].getChildByName('num').getComponent(cc.Label).string= global.myinfo.tool_1;
 
-		this.popwinbg.width = this.node.parent.width;
-		this.popwinbg.height = this.node.parent.height;
+		},this);
+
+		this.node.on('exitgame',function(){
+			this.win_tip.active = true;
+			this.win_tip.emit('settip',{type:1,msg:'hall'});
+		},this);
+
+		this.node.on('setgunlevel',function(event){
+		
+			var seat = event.detail.seat-1;
+			if(seat>1) 	seat-=2;    	
+
+			//if(++this.guntype >7) this.guntype  =1;
+			this.playerInfo[seat].emit('setgunlevel',{level: event.detail.level});
+			//global.game.emit('setgun',{seat:global.myseat,type:this.guntype});
+		},this);
+
+
+		this.node.on('freeze',function(){
+				this.btn[6].getChildByName('num').getComponent(cc.Label).string= global.myinfo.tool_1;
+				this.btn[6].getComponent(cc.Button).interactable = false;
+				var ice = global.game.getChildByName("ice");
+				ice.active = true;
+				ice.opacity= 100;
+				ice.runAction(cc.fadeTo(1,255));
+				var that = this;
+				this.scheduleOnce(function() { 
+					ice.active = false; 
+					that.btn[6].getComponent(cc.Button).interactable = true;
+				}, 8);
+		},this);
+
+	
 		this.popwinbg.on('touchend',function(){event.stopPropagation();}); 
     },
 
@@ -47,7 +85,7 @@ cc.Class({
 
 		//激活玩家面板
 		
-		this.playerInfo[seat-1].emit('playercome',{name:msg.name,gold:msg.gold});
+		this.playerInfo[seat-1].emit('playercome',{name:msg.name,gold:msg.gold,diamond:msg.diamond,level:msg.level});
 		
 		//添加自己
 		if(global.myseat ==  msg.seat){
@@ -77,39 +115,84 @@ cc.Class({
     	}
 
     	this.playerInfo[seat-1].emit('playerquit');
-    },
+	},
+	
+	SetPlayer:function(event){
+		var msg = event.detail;
+
+		var seat = Number( msg.seat);		
+    	//若玩家坐号为3  4 号，需转换座号，
+    	if(global.myseat>2){
+    		if(seat > 2) seat -= 2;
+    		else seat += 2;
+    	}
+
+    	this.playerInfo[seat-1].emit('changegold',{gold:msg.gold});
+	},
 
 	// f_SetGunBtn:function(event ){
 		
 	// 	this.playerbtn.setPosition( this.pos_btn[ event.detail.seat-1] );
 	// },
-	
+	//加炮
 	f_Btn_Add:function(){
 		//向服务器发
-		
-		//本地模拟
-		var seat = global.myseat-1;
-		if(seat>1) 	seat-=2;    	
+		console.log(global.mygunlv);
+		if(global.mygunlv >=global.myinfo.bullet_level)return ;
+		var p = {
+				version: 102,
+				method: 5013,				
+				seqId: Math.random() * 1000,
+				timestamp: new Date().getTime(),
+				data:global.mygunlv+1,
+			};
+		global.socket.ws.send(JSON.stringify(p));	
 
-		if(++this.guntype >7) this.guntype  =1;
-		this.playerInfo[seat].emit('setgunlevel',{level:this.guntype*10});
-		global.game.emit('setgun',{seat:global.myseat,type:this.guntype});
+
+		console.log(JSON.stringify(p));
+		// //本地模拟
+		// var seat = global.myseat-1;
+		// if(seat>1) 	seat-=2;    	
+
+		// if(++this.guntype >7) this.guntype  =1;
+		// this.playerInfo[seat].emit('setgunlevel',{level:this.guntype*10});
+		// global.game.emit('setgun',{seat:global.myseat,type:this.guntype});
 	},
 	
 	f_Btn_Sub:function(){
 		//向服务器发
-		
-		//本地模拟
-		var seat = global.myseat-1;
-		if(seat>1) 	seat-=2;
+		console.log(global.mygunlv);
+		if(global.mygunlv ==1)return ;
+		var p = {
+				version: 102,
+				method: 5013,				
+				seqId: Math.random() * 1000,
+				timestamp: new Date().getTime(),
+				data:global.mygunlv-1,
+			};
+		global.socket.ws.send(JSON.stringify(p));	
+		console.log(JSON.stringify(p));
+		// //本地模拟
+		// var seat = global.myseat-1;
+		// if(seat>1) 	seat-=2;
 
-		if(--this.guntype <1) this.guntype  =7;
-		this.playerInfo[seat].emit('setgunlevel',{level:this.guntype*10});
-		global.game.emit('setgun',{seat:global.myseat,type:this.guntype});
+		// if(--this.guntype <1) this.guntype  =7;
+		// this.playerInfo[seat].emit('setgunlevel',{level:this.guntype*10});
+		// global.game.emit('setgun',{seat:global.myseat,type:this.guntype});
 	},
-	
+	//锁定--------------
 	f_Btn_Lock:function(){
-	
+		
+		// var p = {
+		// 	version: 102,
+		// 	method: 5011,				
+		// 	seqId: Math.random() * 1000,
+		// 	timestamp: new Date().getTime(),
+		// 	data:1,
+		// };
+		// global.socket.ws.send(JSON.stringify(p));	
+		if(global.myinfo.tool_2 < 1 ) return;
+
 		global.game.emit('lockstart');
 		//锁定开关计时
 		this.btn[5].getComponent(cc.Button).interactable= false;
@@ -135,18 +218,31 @@ cc.Class({
 
 	},
 
-	f_btn_Ice:function(){
+	//冰冻-------------------
+	f_btn_Ice:function(){		
 
-		this.btn[6].getComponent(cc.Button).interactable = false;
-		var ice = global.game.getChildByName("ice");
-		ice.active = true;
-		ice.opacity= 100;
-		ice.runAction(cc.fadeTo(1,255));
+		if(global.myinfo.tool_1 < 1 ) return;		
+
+		var p = {
+			version: 102,
+			method: 5011,	
+			backendId: global.backid,			
+			seqId: Math.random() * 1000,
+			timestamp: new Date().getTime(),
+			data:JSON.stringify( [1,{}]  ),
+		};
+		global.socket.ws.send(JSON.stringify(p));	
+
+		// this.btn[6].getComponent(cc.Button).interactable = false;
+		// var ice = global.game.getChildByName("ice");
+		// ice.active = true;
+		// ice.opacity= 100;
+		// ice.runAction(cc.fadeTo(1,255));
 			
-		this.scheduleOnce(function() { 
-			ice.active = false; 
-			this.btn[6].getComponent(cc.Button).interactable = true;
-		}, 3);
+		// this.scheduleOnce(function() { 
+		// 	ice.active = false; 
+		// 	this.btn[6].getComponent(cc.Button).interactable = true;
+		// }, 8);
 	},
 	
 	f_Btn_Out:function(){
@@ -164,4 +260,9 @@ cc.Class({
 		this.btn[3].active = true;
 		this.btn[4].active = false;		
 	},	
+
+	Btn_UpGun:function(){
+		this.win_unlockgun.active = true;
+	}
+
 });

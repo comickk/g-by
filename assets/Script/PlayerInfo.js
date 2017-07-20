@@ -4,8 +4,8 @@ cc.Class({
     properties: {
       
         headImg:cc.Sprite,
-        playername:cc.Label,
-        playergold:cc.Label,
+        glod:cc.Label,
+        diamond:cc.Label,
         gunlevel:cc.Label,
         online:cc.Node,
         wait:cc.Node, 
@@ -19,9 +19,10 @@ cc.Class({
             this.online.active = true;
 
            // this.playername.string = event.detail.name;
-            this.playergold.string = event.detail.gold.toString();
+            this.glod.string = event.detail.gold.toString();
+            this.diamond.string = event.detail.diamond.toString();
 
-            this.gunlevel.string = '10';
+            this.gunlevel.string = event.detail.level;
 
         },this);
 
@@ -33,7 +34,9 @@ cc.Class({
 
         this.node.on('setgunlevel',function(event){ this.gunlevel.string = event.detail.level},this);
 
-        this.node.on('changegole',function(){},this);
+        this.node.on('changegold',function(event){
+            this.glod.string = event.detail.gold.toString();
+        },this);
 
     },
 

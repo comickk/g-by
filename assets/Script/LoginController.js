@@ -22,11 +22,12 @@ cc.Class({
         logintip:cc.Node,
 
         _lastnick:'',
-        _lastpass:'',
+        _lastpass:'',       
     },
 
     // use this for initialization
     onLoad: function () {
+        
          this.popwinlayer.on('touchend',function(){event.stopPropagation();});  
 
          this.node.on('getauthcode',this.GetAuthCode,this);
@@ -58,16 +59,17 @@ cc.Class({
     //消息处理
     MsgHandle:function(msg){
         
+        //console.log('---------------');
+        // console.log(msg);
         switch(msg.method){
-            case 1:  
-                var info ={};        
-                for( let i =0 ;i<msg.data.length;i++){
-                    info[msg.data[i]]= msg.data[++i]; 
-                }        
-
-                global.myinfo = info;    
-                global.myid = JSON.parse( info.extend_data)['id'];
-               // console.log('------'+ global.myid);
+            case 1:                 
+                global.myinfo = msg.data;//global.socket.MsgToObj(msg.data);                
+               // global.myinfo = info;    
+                global.myid = global.myinfo.id;//JSON.parse( info.extend_data)['id'];    
+               // console.log(global.myinfo);
+                cc.director.preloadScene('hall', function () {
+                    cc.director.loadScene('hall');
+                });               
             break;
        
           default:           
@@ -112,14 +114,11 @@ cc.Class({
     btn_exit:function(){
      
         this.win_tip.active = true;
-        this.win_tip.emit('settip',{type:1,msg:'这是新设的提示'});
+        this.win_tip.emit('settip',{type:1,msg:''});
     },
 
     //获取账号开始游戏
     btn_start:function(){
-        
-      
-
 
         // var user = new proto.gws.model.UserProtobuf();  
         // user.setUserName('猫一八')
@@ -213,13 +212,13 @@ cc.Class({
 
     GetAuthCode:function(event){
 
-        console.log( '--'+ event.detail.code );
+        console.log( event.detail );
 
         global.socket.Init(event.detail.server,event.detail.code); 
 
-         cc.director.preloadScene('hall', function () {
-               cc.director.loadScene('hall');
-        });        
+        //  cc.director.preloadScene('hall', function () {
+        //        cc.director.loadScene('hall');
+        // });        
 
         if(cc.sys.localStorage.getItem('usernick') != event.detail.nick){
             //存储此次登录账号
@@ -228,9 +227,17 @@ cc.Class({
         }
 
         //--------账号记录-----------
+        
         var namelist = JSON.parse(cc.sys.localStorage.getItem('userData'));
 
-        if(namelist.length >0 ){
+        // if(namelist==null){
+        //     console.log('无法取得账号记录');
+        //      this.popwinlayer.active = false;
+        //     this.logintip.active = false;
+        //     return;
+        // }
+
+        if(namelist!=null && namelist.length >0 ){
             var ishave = false;
             for(let n of namelist){
                 if(n.id == event.detail.nick){
@@ -270,18 +277,21 @@ cc.Class({
         var self = this;
         
        //  var url ="http://192.168.2.173/client/user/login?";
-         var url ="http://118.190.89.153/client/user/login?";
+         var url ='http://'+global.socket.URL +'/client/user/login?';
        var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function () {
             if (xhr.readyState == 4 && (xhr.status >= 200 && xhr.status < 400)) {
-                var response = xhr.responseText;
-                // console.log(response);
-                var s = JSON.parse(response);
-                console.log(s)
+            var response = xhr.responseText;
+            // console.log(response);
+            var s = JSON.parse(response);            
+            console.log(s)
 
-                self.node.emit('getauthcode',{code:s.data[0],server:s.data[1],
-                        nick:self._lastnick,
-                        pass:self._lastpass});
+            self.node.emit('getauthcode',{code:s.data[0],server:s.data[1],
+                    nick:self._lastnick,
+                    pass:self._lastpass});
+            // }else{
+            //     console.log('无法登录');
+            // }
             }
         };
 
@@ -289,6 +299,11 @@ cc.Class({
         xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded;");
         xhr.send(arg);
     },
+
+    SetTip:function(){
+        this.win_tip.active = true;
+        this.win_tip.emit('settip',{type:2,msg:'测试期间不开放注册!'});
+    }
 
 });
 /*

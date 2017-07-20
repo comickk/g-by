@@ -20,6 +20,8 @@ cc.Class({
         win_vip:cc.Node,
         win_rotary:cc.Node,
 
+        win_tip:cc.Node,
+
         loadprog:cc.Node,
 
         username:cc.Label,
@@ -44,11 +46,24 @@ cc.Class({
 
         global.socket.controller = this;
        // this.win_rotary.active = true;
+
+       //开启socket心跳发送
+       this.schedule(function() {
+        // 这里的 this 指向 component
+        var p = {
+                version: 102,
+                method: 666,                       
+                seqId: Math.random() * 1000,
+                timestamp: new Date().getTime(),                     
+            };
+            global.socket.ws.send(JSON.stringify(p));	
+         }, 10);
     },
 
     start:function(){
         //设置玩家基本信息
-        this.username.string = JSON.parse( global.myinfo.extend_data)['nickname'];
+        //console.log(global.myinfo);
+        this.username.string = global.myinfo.nickname;//JSON.parse( global.myinfo.extend_data)['nickname'];
         this.usergold.string =global.myinfo.score;
         this.userdiamond.string='0';
         
@@ -87,6 +102,11 @@ cc.Class({
                     global.myseat = Number(seat[i]);	                       
             }
 
+             console.log(global.myinfo);
+            if(global.myseat>4 || global.myseat<1  ) {
+                console.log('--未取得用户信息--');
+                return;
+            }
              //console.log('---------'+global.myseat +'  '+global.myid);
 
             this.loadprog.active = true;
@@ -113,6 +133,11 @@ cc.Class({
     //         global.socket.msglist.pop();
     //     }
     // },
+
+    WinTip:function(){
+        this.win_tip.active = true;
+        this.win_tip.emit('settip',{type:2,msg:'暂未开放，敬请期待'});
+    },
 
     Btn_Fish:function(){
         //console.log('快速开始游戏');

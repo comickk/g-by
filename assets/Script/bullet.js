@@ -19,7 +19,9 @@ cc.Class({
 		v_ch:{default:0,visiable:false},		
 		
 		//v_isclear:false,		
-		ismoveing:true,				
+		ismoveing:true,		
+		
+		//_id:0,
     },
 
     // use this for initialization
@@ -202,6 +204,7 @@ cc.Class({
 		this.ismoveing = false;
 		//this.v_isclear = false;
 		
+	//	this._id = id;
 		this.v_type = type;		
 		this.v_seat = seat;
 		this.v_speed = speed;			
@@ -213,12 +216,19 @@ cc.Class({
 		if(this.v_locktarget !='' && this.v_locktarget != other.node.name)		return;
 		
 		
+		//计算距离
+		//console.log('-----'+ this.Distance(other.node.x,other.node.y,this.node.x,this.node.y));
+		//console.log('-----'+ this.Distance( -0.914,-0.316,-0.8248570277028835,-0.27147475404180793));
+
+		//console.log('====='+ this.Distance( other.node.x/(cc.Canvas.instance.node.width/2),other.node.y/(cc.Canvas.instance.node.height/2),
+		//									this.node.x/(cc.Canvas.instance.node.width/2),this.node.y/(cc.Canvas.instance.node.height/2) ));
+
+
 		//让鱼闪一下
 		other.node.emit('flash');
 		//
-		global.game.emit('collider',{seat:this.v_seat,type:this.v_type,
-													x:this.node.x,y:this.node.y,
-													fishname:other.node.name});
+		global.game.emit('collider',{seat:this.v_seat,type:this.v_type,	x:this.node.x,y:this.node.y,
+									 id:this.node.name,fishname:other.node.name});
 								
 		//消毁子弹(返回对象池)									
 		this.node.stopAllActions();		
@@ -231,6 +241,12 @@ cc.Class({
 	},
     f_Exploded:function(){
         
+	},
+	
+	  Distance:function(x1,y1,x2,y2){
+        var xdiff = x2 - x1;
+        var ydiff = y2 - y1;
+      return  Math.abs(Math.pow((xdiff * xdiff + ydiff * ydiff), 0.5));
     }
     
 });
