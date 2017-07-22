@@ -65,8 +65,7 @@ cc.Class({
         //console.log(global.myinfo);
         this.username.string = global.myinfo.nickname;//JSON.parse( global.myinfo.extend_data)['nickname'];
         this.usergold.string =global.myinfo.score;
-        this.userdiamond.string='0';
-        
+        this.userdiamond.string='0';        
     },
 
     //消息处理
@@ -111,14 +110,15 @@ cc.Class({
 
             this.loadprog.active = true;
             var loadsp = this.loadprog.children[2].getComponent(cc.Sprite);
-            cc.loader.onProgress = function (completedCount, totalCount, item) {
-           
-                var progress =  (100 * completedCount / totalCount).toFixed(2);
-                loadsp.fillRange = progress;
+            cc.loader.onProgress = function (completedCount, totalCount, item) {           
+               
+                var progress =  ( (completedCount+1) / (totalCount+1) ).toFixed(2);
+                loadsp.fillRange = progress;                
+               
                // cc.log(progress + '%');
             }
             cc.director.preloadScene('game_base', function () {
-                    cc.loader.onProgress=null;
+                  //  cc.loader.onProgress=null;
                    cc.director.loadScene('game_base');
             });
     },
@@ -136,7 +136,7 @@ cc.Class({
 
     WinTip:function(){
         this.win_tip.active = true;
-        this.win_tip.emit('settip',{type:2,msg:'暂未开放，敬请期待'});
+        this.win_tip.emit('settip',{type:2,msg:'暂未开放，敬请期待',scene:''});
     },
 
     Btn_Fish:function(){
@@ -182,11 +182,13 @@ cc.Class({
         this.win_playerinfo.active= true;
     },
 
-    Btn_AccountCenter:function(){
+    Btn_AccountCenter:function(){       
         this.win_web.active = true;
     },
 
     Btn_Gift:function(){
+         if(this.win_playerinfo.active ==  true) 
+            this.win_playerinfo.active = false;
         this.win_gift.active = true;
     },
     
@@ -195,6 +197,8 @@ cc.Class({
     },
 
     Btn_Vip:function(){
+         if(this.win_playerinfo.active ==  true) 
+            this.win_playerinfo.active = false;
         this.win_vip.active = true;
     },
 
@@ -261,10 +265,15 @@ cc.Class({
 
         this.room[id].runAction(cc.spawn(cc.moveTo(0.3,pos.x,pos.y),cc.scaleTo(0.3,scale,scale)));
     },
+
+    CloseSocket:function(){		
+		this.win_tip.active = true;
+		this.win_tip.emit('settip',{type:2,msg:'与服务器的联接已断开,请重新登录',scene:'login'});
+	},
   
 
     // called every frame, uncomment this function to activate update callback
     // update: function (dt) {
-
+ 
     // },
 });

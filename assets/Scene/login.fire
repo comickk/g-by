@@ -431,7 +431,7 @@
     },
     "_enabled": true,
     "_useOriginalSize": false,
-    "_string": "请输入你的账号",
+    "_string": "请使用昵称登录",
     "_tabIndex": 0,
     "editingDidBegan": [],
     "textChanged": [],

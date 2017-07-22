@@ -34,6 +34,8 @@ cc.Class({
             default:false,      
             visible:false
        },
+
+       _enable:true,
     },
 
     // use this for initialization
@@ -72,6 +74,8 @@ cc.Class({
          },this);
 
          this.icon.on('touchend',function(){
+             if(!this._enable) return;
+             this._enable = false;
             var bx=-175;
             if(this.direct==1) bx= -bx;
             if(this.out) bx = -bx;
@@ -82,10 +86,10 @@ cc.Class({
 
             frame.active = !frame.active;
             this.title.active = !this.title.active;
-             this.tipbg.runAction( cc.sequence(cc.moveBy(0.3,bx,0),cc.callFunc(function(){
-                that.out = !that.out;                
+            this.tipbg.runAction( cc.sequence(cc.moveBy(0.3,bx,0),cc.callFunc(function(){
+                that.out = !that.out;   
+                that._enable = true;             
             })));
-
          },this);
 
          this.frame2.on('touchend',function(){

@@ -29,10 +29,15 @@ cc.Class({
            }
 
            if(event.detail.type == 2){
+               this._scene='';
                this.btn_cancel.active = false;
                this.btn_exit.active = false;
                this.btn_accept.active = true;
-            this.tipmsg=event.detail.msg;
+                this.tipmsg=event.detail.msg;
+
+                if( typeof(event.detail.scene) != 'undefine')
+                 this._scene = event.detail.scene;
+
             this.tiplabel.string = this.tipmsg;
            }
         },this);   
@@ -57,10 +62,23 @@ cc.Class({
                     global.socket.ws.send(JSON.stringify(p));	
         
                     cc.director.preloadScene(that._scene, function () {
-                    cc.audioEngine.stopAll();
-                    cc.director.loadScene(that._scene);   
-                })
-            }
+                        cc.audioEngine.stopAll();
+                        cc.director.loadScene(that._scene);   
+                    })
+            } 
         },this);
     },   
+
+    BtnOK:function(){
+
+        console.log(this._scene);
+        if(this._scene!= ''){
+            var that = this;
+             cc.director.preloadScene(that._scene, function () {
+                    cc.audioEngine.stopAll();
+                    cc.director.loadScene(that._scene);   
+            })
+        }
+        this.Hide();
+    },
 });

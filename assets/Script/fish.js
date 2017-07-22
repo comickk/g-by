@@ -3,13 +3,8 @@ var FishMath = require('FishMath');
 cc.Class({
     extends: cc.Component,
 
-    properties: {
-        
-			v_ID:0,
-            v_type:   1,
-            v_speed:  1,
-            v_value:  1,
-            v_islive: true,
+    properties: {      
+           
 			v_islock: false,		
 
 			body:cc.Node,
@@ -22,9 +17,9 @@ cc.Class({
 				visible:false
 			},			
 		
-			v_islocal:true,
+			v_islocal:true,		
 
-			_isboss:false,
+			_type:1,
 
 			_pathID:0,
 			//_path:[],
@@ -32,10 +27,13 @@ cc.Class({
 			_isloop:true,//是否循环轨迹
 			_step:1,//默认轨迹时间点，0为初始位置
 			_steplen:0.3,//轨迹步长
+			_stepwidth:1,//步宽
 
 			_isice:false,
 			_width:0,
 			_height:0,
+
+			_ishide:false,
     },
 
     // use this for initialization
@@ -60,7 +58,8 @@ cc.Class({
 
 		this.node.on('synchro',function(event){
 			//console.log(this);
-			this._step = event.detail.step;
+			if(!this._ishide)
+				this._step = event.detail.step;
 			//console.log('-----'+ this._step + '  ' + event.detail.step);
 		},this);
 
@@ -89,7 +88,7 @@ cc.Class({
 		//读取指定轨迹文件
 		this.node.on('loadpath',function(event){
 				
-			this.LoadPath(event.detail.pathid,event.detail.offstep,event.detail.isloop);
+			this.LoadPath(event.detail.type,event.detail.pathid,event.detail.offstep,event.detail.isloop);
 		},this);
 
 		//按轨迹移动
@@ -134,9 +133,34 @@ cc.Class({
     },	
 
 	Hide:function(){
-
+		this._ishide =true;
 		this.node.getComponent(cc.Collider).enabled =false;          
 
+		if(this.v_islock )	//该鱼在被锁定情况下，通知取消锁定			
+			global.game.emit('cancellock');		
+		else
+			if(this.v_select) global.game.emit('touchend');	
+
+		// var layer = cc.find("Canvas/GameController/DelFishLayer");
+		// if(cc.isValid(layer))
+		// 	this.node.parent = layer;
+
+		//轨迹超过 50%的 加速游走
+		if(this._step > FishMath.fishpath.data[this._pathID].length*0.6 ){
+			this._isloop = false;			
+			
+			this._stepwidth= parseInt( (FishMath.fishpath.data[this._pathID].length - this._step)/4);
+
+			var anim = this.body.getComponent(cc.Animation);	
+			var as = anim.getAnimationState();
+			if(as!= null) as.speed =3; 
+
+			this.body.runAction(cc.fadeOut(1.2));
+		
+			return;
+		}
+
+		//未超过的 原地隐藏
 		var anim = this.body.getComponent(cc.Animation);	
 		
 		if(cc.isValid(anim.getClips()[2])){
@@ -147,12 +171,6 @@ cc.Class({
 			console.log('--no fish run anim--');
 			this.body.runAction(cc.fadeOut(0.8));
 		}
-
-		if(this.v_islock )	//该鱼在被锁定情况下，通知取消锁定			
-			global.game.emit('cancellock');		
-		else
-			if(this.v_select) global.game.emit('touchend');	
-
 		this.scheduleOnce(function() {
      		this.node.destroy();
  		}, 1);
@@ -172,26 +190,30 @@ cc.Class({
 	},
 
 	//加载轨迹
-	LoadPath:function(pathid,offstep,isloop){	
+	LoadPath:function(type,pathid,offstep,isloop){	
 
+		if(pathid >= FishMath.fishpath.data.length ) return;
+		if(offstep >= FishMath.fishpath.data[pathid].length) return;
+		this._type = type;
 		this._pathID = pathid;	
 		this._offstep = offstep;
 		this._step = this._offstep+1;
 		this._isloop = isloop;
-
+		
 		//设定初始位置 
 		var fp =  FishMath.fishpath.data[this._pathID][this._offstep];
-		if(!isNaN(fp[0])){
+		
+		if(fp[0]){
 			this.node.setPosition(fp[0]*this._width, fp[1]*this._height);
 			this.node.rotation = fp[2];
 		}
 
 		//开始按轨迹动运
 		if( FishMath.fishpath.data[this._pathID].length > 1 ){
-				this.schedule(function() {
-					this.FishMove();
- 				}, this._steplen);
-			}
+			this.schedule(function() {
+				this.FishMove();
+			}, this._steplen);
+		}
 		//this.node.emit('move');
 
 		// var that  = this;
@@ -238,11 +260,11 @@ cc.Class({
 		//结束线路，重新开始
 		if(this._step > FishMath.fishpath.data[this._pathID].length-1 ) {
 			if(this._isloop){
-			this._step = 1;
-			//恢复轨迹初始位置
-			fp =  FishMath.fishpath.data[this._pathID][0];
-			this.node.setPosition(fp[0]*this._width, fp[1]*this._height);
-			this.node.rotation = fp[2];
+				this._step = 1;
+				//恢复轨迹初始位置
+				fp =  FishMath.fishpath.data[this._pathID][0];
+				this.node.setPosition(fp[0]*this._width, fp[1]*this._height);
+				this.node.rotation = fp[2];
 			}else{//不循环删除
 				
 				if(this.v_islock )	//该鱼在被锁定情况下，通知取消锁定			
@@ -255,12 +277,14 @@ cc.Class({
 			fp = FishMath.fishpath.data[this._pathID][this._step];
 			this.node.runAction(cc.spawn(cc.moveTo(this._steplen, fp[0]*this._width, fp[1]*this._height), 
 			cc.rotateTo (this._steplen,fp[2])));
+			//this.node.setPosition(fp[0]*this._width, fp[1]*this._height);
 		}
 		if(!this._isice)
-			this._step++;				
+			this._step+= this._stepwidth;				
 	},
 
 	Freeze:function(){
+		if(this._ishide) return;
 		this._isice = true;
 
 		//停止游动 动画

@@ -37,7 +37,7 @@ cc.Class({
 
         for(let i =0;i<9;i++){
            // global.myinfo.tool_1 = 
-            this.SetItem(i,i,global.myinfo['tool_'+i.toString()]);
+            this.SetItem(i,i,global.myinfo['tool_'+(i+1).toString()]);
         }
     },
 

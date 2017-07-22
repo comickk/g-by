@@ -10,7 +10,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Tip_exit",
+    "_name": "Win_tip",
     "_objFlags": 0,
     "_parent": null,
     "_children": [
@@ -171,7 +171,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "40c9bbb4-3fbb-47be-98da-3b5c0e7a2373"
     },
     "fileId": "d1a94D4pBZLw4bjVnxFnFdi",
     "sync": false
@@ -262,7 +262,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "40c9bbb4-3fbb-47be-98da-3b5c0e7a2373"
     },
     "fileId": "a3ccchIS/BPK4bxWIqL+Zhm",
     "sync": false
@@ -353,7 +353,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "40c9bbb4-3fbb-47be-98da-3b5c0e7a2373"
     },
     "fileId": "223c6AVnd5JL6A1+n6CTwnp",
     "sync": false
@@ -440,7 +440,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "40c9bbb4-3fbb-47be-98da-3b5c0e7a2373"
     },
     "fileId": "e0eeeyMXtVHQZ2OpZcIBsbf",
     "sync": false
@@ -605,7 +605,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "40c9bbb4-3fbb-47be-98da-3b5c0e7a2373"
     },
     "fileId": "1250flU3xVD1og+Zcx7HcHf",
     "sync": false
@@ -754,7 +754,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "40c9bbb4-3fbb-47be-98da-3b5c0e7a2373"
     },
     "fileId": "035fd3LP4lKk4IkCKO2NEkf",
     "sync": false
@@ -791,7 +791,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "40c9bbb4-3fbb-47be-98da-3b5c0e7a2373"
     },
     "fileId": "fda62fsTkBELJmwprbRQsr7",
     "sync": false
@@ -940,7 +940,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "40c9bbb4-3fbb-47be-98da-3b5c0e7a2373"
     },
     "fileId": "b693dXGTLJHf5E6wZNgBH1O",
     "sync": false
@@ -977,7 +977,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "40c9bbb4-3fbb-47be-98da-3b5c0e7a2373"
     },
     "fileId": "b24bdqCaLxBdIRJt+RtJvl0",
     "sync": false
@@ -1042,7 +1042,8 @@
     },
     "btn_exit": {
       "__id__": 25
-    }
+    },
+    "_scene": ""
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -1050,7 +1051,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "40c9bbb4-3fbb-47be-98da-3b5c0e7a2373"
     },
     "fileId": "fce8859vzhA7qlvaQdxDDJN",
     "sync": false

@@ -19,6 +19,7 @@ var PopWin = cc.Class({
         //this.node.on('hide',this.Hide,this);   
         //if(this.BGlayer)
          //   this.BGlayer.on('touchend',function(){event.stopPropagation();});  
+       // this.node.on('touchend',function(){event.stopPropagation();});   
     },    
 
     Hide:function(){

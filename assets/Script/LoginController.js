@@ -26,8 +26,7 @@ cc.Class({
     },
 
     // use this for initialization
-    onLoad: function () {
-        
+    onLoad: function () {      
          this.popwinlayer.on('touchend',function(){event.stopPropagation();});  
 
          this.node.on('getauthcode',this.GetAuthCode,this);
@@ -302,8 +301,11 @@ cc.Class({
 
     SetTip:function(){
         this.win_tip.active = true;
-        this.win_tip.emit('settip',{type:2,msg:'测试期间不开放注册!'});
-    }
+        this.win_tip.emit('settip',{type:2,msg:'测试期间不开放注册!',scene:''});
+    },
+    // test:function(event, customEventData){
+    //     console.log('--------'+customEventData);
+    // }
 
 });
 /*

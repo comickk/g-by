@@ -190,10 +190,13 @@ cc.Class({
 				id: bid,
 				x: this._mousepos.x/cc.Canvas.instance.node.width,
 				y: this._mousepos.y/cc.Canvas.instance.node.height,
-				level: 1
+				level: global.mygunlv,
 			})
 		};
-		global.socket.ws.send(JSON.stringify(p));  
+		//console.log(p);
+		var jsp= JSON.stringify(p);
+		//console.log(jsp);
+		global.socket.ws.send(jsp);  
 		//------------------------------
 		
 		//计算炮弹的目标点		
@@ -222,7 +225,8 @@ cc.Class({
 		sp_bullet.ismoveing = true;
 																
 		this.v_isready = false;
-		this.scheduleOnce( function() {	this.v_isready = true;}, 0.2);
+		var that = this;
+		this.scheduleOnce( function() {	that.v_isready = true;}, 0.2);
 	},
 	
 	f_OtherFire(event){

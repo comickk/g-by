@@ -61,7 +61,9 @@ cc.Class({
         },this);
 
         //功能按钮
-        this.btn_pay.on('touchend',function(){},this);
+        this.btn_pay.on('touchend',function(){
+            global.ui.emit('shop');
+        },this);
         this.btn_poxedex.on('touchend',function(){},this);
         this.btn_set.on('touchend',function(){},this);
        

@@ -1,0 +1,53 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "seattip",
+  "_objFlags": 0,
+  "_rawFiles": null,
+  "_duration": 0.67,
+  "sample": 30,
+  "speed": 1,
+  "wrapMode": 22,
+  "curveData": {
+    "paths": {
+      "tip_trangle_skill": {
+        "props": {
+          "y": [
+            {
+              "frame": 0,
+              "value": 232
+            },
+            {
+              "frame": 0.6666666666666666,
+              "value": 194
+            }
+          ]
+        }
+      },
+      "iiii": {
+        "props": {
+          "scaleX": [
+            {
+              "frame": 0,
+              "value": 1.2
+            },
+            {
+              "frame": 0.6666666666666666,
+              "value": 0.9
+            }
+          ],
+          "scaleY": [
+            {
+              "frame": 0,
+              "value": 1.2
+            },
+            {
+              "frame": 0.6666666666666666,
+              "value": 0.96
+            }
+          ]
+        }
+      }
+    }
+  },
+  "events": []
+}

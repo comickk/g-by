@@ -20905,7 +20905,7 @@
       "__id__": 518
     },
     "component": "Win_Tip",
-    "handler": "Hide",
+    "handler": "BtnOK",
     "customEventData": ""
   },
   {
