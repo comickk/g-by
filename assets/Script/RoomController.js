@@ -107,7 +107,7 @@ cc.Class({
                 return;
             }
              //console.log('---------'+global.myseat +'  '+global.myid);
-
+          
             this.loadprog.active = true;
             var loadsp = this.loadprog.children[2].getComponent(cc.Sprite);
             cc.loader.onProgress = function (completedCount, totalCount, item) {           

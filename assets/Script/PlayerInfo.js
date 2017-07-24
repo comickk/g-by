@@ -28,11 +28,16 @@ cc.Class({
             this.glod.string = event.detail.gold.toString();
             this.diamond.string = event.detail.diamond.toString();
 
-            this.gunlevel.string = event.detail.level;
+            this.gunlevel.string = event.detail.lv_curr;
+
+              if(event.detail.gold == 0){
+                if(!this.bankruptcy.active)
+                    this.bankruptcy.active = true;
+            }
 
             this.infobg.getChildByName('nick').getComponent(cc.Label).string =   event.detail.name; 
-            this.infobg.getChildByName('level').getComponent(cc.Label).string =   '等  级: '+event.detail.level; 
-            this.infobg.getChildByName('gun').getComponent(cc.Label).string =   '炮等级: '+event.detail.level;             
+            this.infobg.getChildByName('level').getComponent(cc.Label).string =   '等  级: '+event.detail.lv_max; 
+            this.infobg.getChildByName('gun').getComponent(cc.Label).string =   '炮等级: '+event.detail.lv_max;             
 
         },this);
 
@@ -58,7 +63,7 @@ cc.Class({
         },this);
 
         this.node.on('showinfo',function(){
-           // cc.log('马上要显示了哦');
+            //cc.log('马上要显示玩家信息了哦');
              if(!this.infobg || this.infobg.active) return;
              var  that  =this;
              that.infobg.active = true;	

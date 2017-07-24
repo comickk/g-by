@@ -22,9 +22,19 @@ cc.Class({
         // console.log( new Date() );可加上日期
         line.parent = this.layout.node;
        
-        //发送消息
+        //发送消息        
+        var that = this;
+		var p = {
+			version: 102,
+			method: 2003,
+			seqId: Math.random() * 1000,
+			timestamp: new Date().getTime(), 
+			data: that.input.string,
+		};		
+		var jsp= JSON.stringify(p);	
+		global.socket.ws.send(jsp);  
         
-        global.ui.emit('chat',{seat:global.myseat,msg:this.input.string});
+       // global.ui.emit('chat',{seat:global.myseat,msg:this.input.string});
         this.input.string='';
         //
         this.Hide();

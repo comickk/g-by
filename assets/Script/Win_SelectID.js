@@ -41,7 +41,9 @@ cc.Class({
         // }
         if( namelist!=null && namelist.length >0 ){
           
-            for(let n of namelist){
+            //for(let n of namelist){
+            for(let i=0;i<namelist.length;i++){
+                let n = namelist[i];
                this.AddItem(n.id,n.pass);
             }          
         }                         

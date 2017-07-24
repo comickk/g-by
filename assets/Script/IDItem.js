@@ -29,9 +29,11 @@ cc.Class({
         if(namelist.length >0 ){
           
             var i=0;
-            for(let n of namelist){
+            //for(let n of namelist){
+            for( i=0;i<namelist.length;i++){
+                let n = namelist[i];
                 if(n.id == this.userID.string){                    
-                    i++;
+                   // i++;
                     break;
                 }
             }     

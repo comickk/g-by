@@ -73,15 +73,17 @@ cc.Class({
 		},this);
 
 
-		this.node.on('freeze',function(){
+		this.node.on('freeze',function(event){
 				
 				var ice = global.game.getChildByName("ice");
 				ice.active = true;
 				ice.opacity= 100;
 				ice.runAction(cc.fadeTo(1,255));
 
-				//this.btn[6].getChildByName('num').getComponent(cc.Label).string= global.myinfo.tool_1;				
-				//this.btn[6].getComponent(cc.Button).interactable = false;
+				if(event.detail.seat == global.myseat){
+					this.btn[6].getChildByName('num').getComponent(cc.Label).string= event.detail.num;				
+					//this.btn[6].getComponent(cc.Button).interactable = false;
+				}
 				// var that = this;
 				 this.scheduleOnce(function() { 
 				 	ice.active = false; 
@@ -136,7 +138,7 @@ cc.Class({
 
 		//激活玩家面板
 		
-		this.playerInfo[seat-1].emit('playercome',{name:msg.name,gold:msg.gold,diamond:msg.diamond,level:msg.level});
+		this.playerInfo[seat-1].emit('playercome',{name:msg.name,gold:msg.gold,diamond:msg.diamond,lv_curr:msg.lv_curr,lv_max:msg.lv_max});
 		
 		//添加自己
 		if(global.myseat ==  msg.seat){
@@ -199,7 +201,7 @@ cc.Class({
 	f_Btn_Add:function(){
 		//向服务器发
 		// console.log(global.mygunlv);
-		if(global.mygunlv >=global.myinfo.bullet_level)return ;
+		if(global.mygunlv >= global.myinfo.bullet_level)return ;
 		//console.log( global.myinfo.bullet_level);
 		var p = {
 				version: 102,
@@ -358,26 +360,23 @@ cc.Class({
 	BtnPlayer:function(event, customEventData){
 		 var s1 = Number(customEventData);
 		 var s2 =global.myseat;
-		if(global.myseat>2){
-    		if(s2 > 2) s2 -= 2;
-    		else s2 += 2;
-		}
+		  
+		 // cc.log('显示玩家信息'+s1);
 
-		if(s2 == s1){//自己
+		 if(global.myseat>2){
+    	 	if(s2 > 2) s2 -= 2;
+    	 	else s2 += 2;
+		 }
+
+		if(s1 == s2){//自己
 			this.playertool.active = true;
 			var  that  =this;
 			this.scheduleOnce(function() {
 				that.playertool.active = false;				
 			}, 3);
-		}else{
-			if(global.myseat>2){
-				if(s1 > 2) s1 -= 2;
-				else s1 += 2;
-			}
+		}else{			
 			this.playerInfo[s1-1].emit('showinfo');
 		}
-
-		//cc.log('显示玩家信息');
 	},
 	
 	Btn_Chat:function(){

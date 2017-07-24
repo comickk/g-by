@@ -4,12 +4,13 @@ function gamesocket(){
 
 
 }
-   // gamesocket.prototype.URL = '192.168.2.173';//'118.190.89.153';
+   //gamesocket.prototype.URL = '192.168.2.173';//'118.190.89.153';
 
    gamesocket.prototype.URL = '118.190.89.153';
    gamesocket.prototype.ws=null;
    gamesocket.prototype.msglist=[];
    gamesocket.prototype.controller =null;
+  // gamesocket.prototype.flow=0;
    
 
    gamesocket.prototype.Init = function( server,code  ){
@@ -43,7 +44,7 @@ function gamesocket(){
             var type = typeof data;
 
             data = JSON.parse(data);
-
+          
             if( self.controller != null)
                 self.controller.MsgHandle(data);           
 

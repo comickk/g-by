@@ -1,6 +1,7 @@
 //var C_NodePool =  require("NodePool");
 var FishMath = require('FishMath');
 var global = require('Global');
+
 cc.Class({
     extends: cc.Component,
 
@@ -114,7 +115,7 @@ cc.Class({
 		this.node.on('cancellock',function(){						
 						this.v_locktarget = null;
 						this.v_isfire = false;
-		},this);	
+		},this);		
     },
 
     onDestroy:function(){
@@ -126,13 +127,17 @@ cc.Class({
 		if(this.v_isfire && this.v_isready) this.f_AutoFire();
      },
 
-    f_InitGun:function(seat,parent,r,x,y){
+    f_InitGun:function(seat,type,parent,r,x,y){
     	//console.log('-----------Init Gun' );	
     	 	
     	this.node.rotation = r;
     	this.node.setPosition(x,y);
     	this.node.parent = parent;
-    	this.v_seat = seat;    	
+		this.v_seat = seat;    	
+		
+		this.v_type = type;
+		//console.log('------'+level);
+		this.node.getComponent(cc.Sprite).spriteFrame = this.v_gunsprite[this.v_type-1];
     },
     
    f_Fire:function(event){		
@@ -177,15 +182,14 @@ cc.Class({
         this.v_anim.play("gun"+this.v_type);  
 		cc.audioEngine.play(this.v_sound[0], false, 1);
 
-		var bid = new Date().getTime()+'';
+		var bid = FishMath.UUID(); //new Date().getTime()+'';
 		
 		//发送开火消息--------------
 		var p = {
 			version: 102,
 			method: 5001,
 			seqId: Math.random() * 1000,
-			timestamp: new Date().getTime(),
-
+			timestamp: new Date().getTime(), 
 			data: JSON.stringify({
 				id: bid,
 				x: this._mousepos.x/cc.Canvas.instance.node.width,
@@ -211,6 +215,8 @@ cc.Class({
 													  
 		sp_bullet.f_InitBullet(	this.v_type,this.v_seat,this.v_bulletspeed);	
 		sp_bullet.node.name = bid;
+
+		//cc.log("bullet Uuid: " + sp_bullet.uuid);
 
 		if(this.v_locktarget != null) {//sp_bullet.emit('settarget',{name:this.v_locktarget.name});
 			sp_bullet.v_locktarget = this.v_locktarget.name;
@@ -266,7 +272,7 @@ cc.Class({
 		sp_bullet.node.runAction(cc.sequence(cc.moveTo(tp[2]/this.v_bulletspeed,tp[0],tp[1]),finished));
 		sp_bullet.ismoveing = true;
 	},
-    
+    //初始化炮类型
 	//设置炮类型
     f_SetType:function(event){	
 		cc.audioEngine.play(this.v_sound[1], false, 1);

@@ -3,7 +3,9 @@
 //var emag = require('emag');          
 var global = require('Global'); 
 var socket = require('Socket'); 
+//var FishMath = require('FishMath');
 //var plugin = require('PluginAnySdk');
+//var uuid = require('index');
 cc.Class({
     extends: cc.Component,
 
@@ -52,7 +54,8 @@ cc.Class({
           //  console.log(this._lastnick);
             this.ebLoginId.string = this._lastnick;
             this._lastpass = cc.sys.localStorage.getItem('userpass');
-        }      
+        }       
+        //this.ebLoginId.string= FishMath.UUID();     
     },
 
     //消息处理
@@ -65,7 +68,7 @@ cc.Class({
                 global.myinfo = msg.data;//global.socket.MsgToObj(msg.data);                
                // global.myinfo = info;    
                 global.myid = global.myinfo.id;//JSON.parse( info.extend_data)['id'];    
-               // console.log(global.myinfo);
+              // console.log(global.myinfo);
                 cc.director.preloadScene('hall', function () {
                     cc.director.loadScene('hall');
                 });               
@@ -238,7 +241,9 @@ cc.Class({
 
         if(namelist!=null && namelist.length >0 ){
             var ishave = false;
-            for(let n of namelist){
+           // for(let n of namelist){
+            for(let i=0;i<namelist.length;i++){
+                let n = namelist[i];
                 if(n.id == event.detail.nick){
                     ishave = true;
                     break;
@@ -306,6 +311,10 @@ cc.Class({
     // test:function(event, customEventData){
     //     console.log('--------'+customEventData);
     // }
+    CloseSocket:function(){		
+		//this.win_tip.active = true;
+		//this.win_tip.emit('settip',{type:2,msg:'与服务器的联接已断开,请重新登录',scene:'login'});
+	},
 
 });
 /*

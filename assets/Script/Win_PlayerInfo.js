@@ -31,6 +31,7 @@ cc.Class({
         if(global.myinfo ==  null ) return;
         this.nick.string = global.myinfo.nickname;
         this.golds.string = global.myinfo.score;
+        this.Diamonds.string = global.myinfo.diamond;
         this.Diamonds.string = '0';
 
         //console.log( '--------------'+global.myinfo['tool_'+'1']);
