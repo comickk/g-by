@@ -7,7 +7,7 @@ cc.Class({
     properties: {
        
        room:[cc.Node],      
-       currentroom:2,
+       _currentroom:2,
 
         popwinlayer:cc.Node,//弹窗遮罩层
 
@@ -40,7 +40,7 @@ cc.Class({
         for(let i = 0;i<this.room.length;i++){
             this.room[i].on('touchstart',this.SelectRoom,this);
           
-          if(this.currentroom == i+1)
+          if(this._currentroom == i+1)
             this.SetRoom(i,true);       
           else 
             this.SetRoom(i,false);
@@ -143,14 +143,27 @@ cc.Class({
 
     Btn_Fish:function(){
         //console.log('快速开始游戏');
+        var room = 'qingtong';
+       switch(this._currentroom){
+           case 0:
+           room = 'qingtong';
+           break;
+           case 1:
+           room = 'baiyin';
+           break;
 
+           case 2:
+           room = 'huangjin';
+           break;
+       }
+        
         this.btn_play.interactable =false; 
          var p = {
             version: 102,
             method: 3001,
             seqId: Math.random() * 1000,
             timestamp: new Date().getTime(),
-            data:'baiyin',
+            data:room,
         };       
 
         global.socket.ws.send(JSON.stringify(p));
@@ -207,7 +220,7 @@ cc.Class({
 
     SelectRoom:function(event){
 
-        if(event.target.name == this.room[this.currentroom].name) return;
+        if(event.target.name == this.room[this._currentroom].name) return;
 
         //点击左边房间  向右移动
         if(event.target.x < 0 ){
@@ -236,14 +249,14 @@ cc.Class({
                      this.SetRoom(i,false,this.room[n].getPosition());               
                
             }
-        }  
+        }         
     },
 
     SetRoom:function(id,isselect,pos){
 
         var scale =1;        
         if(isselect){
-            this.currentroom = id;
+            this._currentroom = id;
             scale=1.2;
             this.room[id].color = cc.Color.WHITE;
 

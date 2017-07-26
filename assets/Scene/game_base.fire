@@ -2318,14 +2318,14 @@
     },
     "_enabled": true,
     "_useOriginalSize": false,
-    "_actualFontSize": 24,
-    "_fontSize": 24,
-    "_lineHeight": 25,
+    "_actualFontSize": 60,
+    "_fontSize": 60,
+    "_lineHeight": 60,
     "_enableWrapText": true,
     "_N$file": null,
     "_isSystemFontUsed": true,
     "_spacingX": 0,
-    "_N$string": "Label",
+    "_N$string": "内部测试版726",
     "_N$horizontalAlign": 1,
     "_N$verticalAlign": 1,
     "_N$fontFamily": "Arial",
@@ -2348,7 +2348,7 @@
     ],
     "_prefab": null,
     "_id": "2d2d5wa/mtPNpBTHAVWOYtY",
-    "_opacity": 255,
+    "_opacity": 130,
     "_color": {
       "__type__": "cc.Color",
       "r": 255,
@@ -2364,8 +2364,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 58.72,
-      "height": 25
+      "width": 400.11,
+      "height": 60
     },
     "_rotationX": 0,
     "_rotationY": 0,
