@@ -14,7 +14,8 @@ var Ptype = cc.Enum({
 	LIGHTNING:-1,
 	LIGHTNINGBALL:-1,
 	BOSSREWARD:-1,
-	BIFISHDEAD:-1
+	BIGFISHDEAD:-1,
+	PROP:-1
 });
 
 var Audiotype =cc.Enum({
@@ -27,10 +28,10 @@ cc.Class({
     extends: cc.Component,
 
     properties: {    
-        
-		v_server:cc.Node,
 		
-		v_guntype:1,
+		AC:cc.Node,
+		//v_server:cc.Node,		
+		
 		fishlayer:cc.Node,	
 		delfishlayer:cc.Node,	
 
@@ -44,7 +45,7 @@ cc.Class({
 		
 		//--------------	
 		v_guns:[cc.Node],
-		prefab:[cc.Prefab],  //0  炮    1 网    2 金币	3 子弹  4 金币文字  5  奖金转盘     6 闪电链   7 闪电球  8 BOSS奖转盘 9 大鱼死亡爆炸效果
+		prefab:[cc.Prefab],  //0  炮    1 网    2 金币	3 子弹  4 金币文字  5  奖金转盘     6 闪电链   7 闪电球  8 BOSS奖转盘 9 大鱼死亡爆炸效果 10掉落道具
 
 		gunseat:[cc.Node],
 		
@@ -64,7 +65,7 @@ cc.Class({
 
 		//_playerinfo:[],
 		//----------------测试
-	//	_log:cc.Label,
+		log:cc.Label,
 		//--------------------
     },	
     // use this for initialization
@@ -102,6 +103,22 @@ cc.Class({
 
 		this.node.on('lockfish',this.LockFish,this);
 		this.node.on('cancellock',this.CancelLock,this);
+
+		this.node.on('ready',function(){
+			if(!cc.isValid(this._gunstyle) || !cc.isValid(FishMath.fishpath))	return;		
+
+			if(cc.isValid(global.socket)){//发送准备信息
+				global.socket.controller = this;
+				//发送准备完毕消息
+				var p = {
+					version: 102,
+					method: 5005,
+					seqId: Math.random() * 1000,
+					timestamp: new Date().getTime()
+				};
+				global.socket.ws.send(JSON.stringify(p));
+			}
+		},this);
 		
 		
 		//服务器鱼消息
@@ -119,19 +136,9 @@ cc.Class({
 		// node.on(cc.Node.EventType.MOUSE_DOWN, function (event) {
 		//  console.log('Mouse down');
 		//  }, this);
-
        // node.on('touchstart', e_TouchDwon, this);	   
-		if(cc.isValid(global.socket)){
-			global.socket.controller = this;
-			//发送准备完毕消息
-			var p = {
-				version: 102,
-				method: 5005,
-				seqId: Math.random() * 1000,
-				timestamp: new Date().getTime()
-			};
-			global.socket.ws.send(JSON.stringify(p));
-		}
+	
+	     var that =this;
 	   //加载鱼的轨迹数据-----------------
 	   	var xhr1 = new XMLHttpRequest();
  		xhr1.onreadystatechange = function () {
@@ -143,39 +150,43 @@ cc.Class({
 			FishMath.fishpath = JSON.parse(response);
 			//var data = JSON.parse(response);
 			//console.log(data.ver);
-		//	console.log(FishMath.fishpath.trail['1121'][2])
+			//	console.log(FishMath.fishpath.trail['1121'][2])
+
+		 	that.node.emit('ready');
 		
      	}
  	};
 	 //xhr.open("GET", "http://192.168.2.173/assets/fish.trail.json", true);
-	 xhr1.open("GET", "http://118.190.89.153/assets/fish.trail.json", true);
+	 xhr1.open("GET", "http://"+global.socket.URL +"/assets/fish.trail.json", true);
 	 xhr1.send();
 	 
 	 //读取炮样式-----------
-	  var that =this;
+	
 	  var xhr2 = new XMLHttpRequest();
 	 xhr2.onreadystatechange = function () {
      	if (xhr2.readyState == 4 && (xhr2.status >= 200 && xhr2.status < 400)) {
         	var response = xhr2.responseText;
 			
-			that._gunstyle = JSON.parse(response);
-			//console.log(that._gunstyle);
+			that._gunstyle = JSON.parse(response);		
+			
+			that.node.emit('ready');
      	}
  	};	
-	xhr2.open("GET", "http://118.190.89.153/assets/cfg.bullet.json", true);
+	xhr2.open("GET", "http://"+global.socket.URL +"/assets/cfg.bullet.json", true);
 	xhr2.send();
 
-	//this._log = cc.find('console').getComponent(cc.Label);
-	//this._log.string='-------start--------';
+	//this._log = cc.find('console').getComponent(cc.Label);	
+
    },
     
     start:function(){            
     	// //初始化炮，跟据座位 设置炮位
     	// global.myseat =3;
-		// this.AddGun(global.myseat);		
+		// this.AddGun(global.myseat);			
 
-		  if(global.myseat>0 && global.myseat > 2) 	this.node.rotation =180;					
-		 
+		if(global.myseat>0 && global.myseat > 2) 	this.node.rotation =180;		 
+		
+		//cc.log('---------start finish----------');
     },
 
 	  //消息处理
@@ -186,7 +197,7 @@ cc.Class({
           case 2002:   //1对1 聊天        
 			break;
 		case 2004://群聊
-			//data [0]用户信息  [1]发送的文字内容
+			//data [0]用户信息  [1]发送的文字内容			
 			this.PlayerChat(msg.data);
 	
 			break;
@@ -261,8 +272,12 @@ cc.Class({
 		//global.pool_bullet.destroy();
 	},		
 	AddGun:function(data){
+
+		if(!cc.isValid(global.myinfo) || global.myseat<0 || global.myseat >4) {	
+			global.ui.emit('error',{msg:'未能与服务器同步,请重新登录'});		
+			return ;
+		}		
 		
-		//console.log(  data);
 		var userinfo = data[0];				
 
 		//var group_info = data[1];
@@ -273,52 +288,65 @@ cc.Class({
 		
 		data = data[2];// [0]座号1  [1]ID1   [2]座号2   [3]ID2 .......			
 		
-		for(let i=0;i<data.length;i+=2){
-			//s检测个人信息和坐位号是否合法			
-			if(!cc.isValid(global.myinfo) || global.myseat<0 || global.myseat >4) {			
-				return false;
-			}
+		//s检测个人信息和坐位号是否合法					
+
+		//遍历该桌玩家信息
+		for(let i=0;i<data.length;i+=2){			
 		
 			var id =data[i+1].split('::')[0];
-			var seat = data[i];	
+			var seat = data[i]-0;	
 			var s = seat-1;
-			if(!this.gunseat[s].active){//座上没人
-				this.gunseat[s].active = true;	//console.log('---添加一个玩家的炮台' );
+			
+			if(!this.gunseat[s].active){//座上没人			
+				
+				if(global.myseat == seat){			//检查是否是自己		
+					
+					//检查是否已加载鱼轨迹和炮台 配置					
+					if(!cc.isValid(this._gunstyle.data) || !cc.isValid(FishMath.fishpath.data)){
+						global.ui.emit('error',{msg:'读取配置文件失败,请重新登录'});												
+						return;
+					}					
 
-				if(global.myseat == seat){			//检查是否是自己			
-					//显示锁定和冰冻的数量
-					global.ui.emit('settools');								
+					//显示锁定和冰冻的数量					
+					global.ui.emit('settools');							
 				}else{
 					this._seatid[seat] = id;//data[i+1].split('::')[0];						
 				}
-
+				
 				//取出玩家信息
 				var user ;
 				var level=1;
 				for(let j =0;j<userinfo.length;j+=3){
 					user = JSON.parse(userinfo[j]);
 					if(user.id == id ){// 
-						level = Number(userinfo[j+2]);//取得炮等级 
+						level = userinfo[j+2]-0;//取得炮等级 
 						if(user.id == global.myid)								
 							global.mygunlv =level;						
 						break;						
 					}						
 				}
+				//cc.log(user);						
 
 				var style = 1;
 				if( cc.isValid( this._gunstyle.data[level-1])) 
 					style = this._gunstyle.data[level-1].style;
-				this.v_guns[s] = cc.instantiate(this.prefab[Ptype.GUN]);      
-				this.v_guns[s].getComponent("gun").f_InitGun(seat,style, this.node,this.gunseat[s].rotation-90,
+				this.v_guns[s] = cc.instantiate(this.prefab[Ptype.GUN-0]);      
+				this.v_guns[s].getComponent('gun').f_InitGun(seat,style, this.node,this.gunseat[s].rotation-90,
 					this.gunseat[s].x,this.gunseat[s].y);
+
 				
 				//设置玩家面板信息			
-				cc.log('玩家加入 '+seat);
+				// cc.log('玩家加入 '+seat);
+				// cc.log('-----'+ this._gunstyle.data[level-1].cost);
+				// cc.log('-----'+ this._gunstyle.data[user.bullet_level-1].cost);
+
+				this.gunseat[s].active = true;	//console.log('---添加一个玩家的炮台' );
+
 				global.ui.emit('addplayer',{seat:seat,name:user.nickname,gold:user.score,diamond:user.diamond,
-					lv_curr:level,lv_max:user.level});			
+					lv_curr: this._gunstyle.data[level-1].cost,lv_max:this._gunstyle.data[user.bullet_level-1].cost});
 			}
 		}					
-		return true;
+		return;
 	},
 	
 	//去掉一个玩家的炮台
@@ -365,7 +393,7 @@ cc.Class({
 			//扣除金币
 			global.ui.emit('setplayer',{seat:global.myseat,gold:bullet.user_score});	
 			//global.myinfo.score = Number(player[i]);			
-			global.myinfo.score = Number(bullet.user_score);
+			global.myinfo.score =bullet.user_score-0;
 			//console.log(global.myinfo);
 		}else{
 			var seat = this.GetPlayerSeat(bullet.user_id);	
@@ -388,7 +416,7 @@ cc.Class({
 
 	Touch(event){		
 		//console.log('-----------touch'+ event.getLocationX()+'    '+event.getLocationY());	
-		if(this.v_guns[global.myseat-1]==null) return;	
+		//if(this.v_guns[global.myseat-1]==null) return;	
 		if(this.v_readylock) return;
 		
 		if(global.myinfo.score < global.mygunlv) {
@@ -416,13 +444,13 @@ cc.Class({
 	InitNodePool:function(){
 
 		global.pool_net= new C_NodePool();
-		global.pool_net.f_Init(this.prefab[1],20);
+		global.pool_net.f_Init(this.prefab[Ptype.NET],20);
 
 		global.pool_coin= new C_NodePool();
-		global.pool_coin.f_Init(this.prefab[2],20);
+		global.pool_coin.f_Init(this.prefab[Ptype.COIN],20);
 
 		global.pool_bullet = new C_NodePool();
-		global.pool_bullet.f_Init(this.prefab[3],50);    	
+		global.pool_bullet.f_Init(this.prefab[Ptype.BULLET],50);    	
 	},		
 
 	//碰撞事件处理
@@ -434,7 +462,7 @@ cc.Class({
 																										  event.detail.seat,this);				
 		
 		//不是自己的子弹打中的鱼不计算  不发送
-		if(event.detail.seat != global.myseat)	return;
+		if(event.detail.seat-0 != global.myseat)	return;
 
 		//console.log(' ----客户端碰撞点 x ='+ event.detail.x +' y= '+event.detail.y);																								  
 		//方式一    只传递子弹碰到的那一个鱼
@@ -576,7 +604,7 @@ cc.Class({
 			if( !cc.isValid(list[d.id+'']) ){
 				
 				//console.log('鱼的等级为 '+d.type);
-				var fish = cc.instantiate(this.v_fish[ d.type]);
+				var fish = cc.instantiate(this.v_fish[ d.type-0]);
 				var attrs = { fishtype: d.type };
 				fish.attr(attrs);
 				fish.parent = this.fishlayer;		
@@ -615,7 +643,7 @@ cc.Class({
 	//捕到
 	GetFish:function(data){
 		//console.log(data);
-		var seat = this.GetPlayerSeat(data[0]);
+		var seat =  this.GetPlayerSeat(data[0]);
 		
 		if(seat<1 || seat >4){
 			console.log('坐号错误 '+'  GetFish  '+ seat+'  '+ data[0]);
@@ -653,15 +681,15 @@ cc.Class({
 					}
 					
 					//生成金币文字
-					var ct = cc.instantiate(this.prefab[4]);
+					var ct = cc.instantiate(this.prefab[Ptype.COINNUM-0]);
 					ct.getComponent("cc.Label").string = data[2].toString();
 					ct.parent = cc.Canvas.instance.node;
 					ct.setPosition(v2.x+10,v2.y+30);				
-					ct.runAction( cc.spawn (cc.moveTo(1, v2.x+10,v2.y+30+20),cc.fadeOut (1)) );
+					ct.runAction( cc.spawn (cc.moveBy(1.5, 0,50),cc.fadeOut (1.5)) );
 					
 					var that  = this;
 					var len = cc.pDistance(v2,that.gunseat[seat-1].getPosition())/400;
-					//生成金币		
+					//生成金币		及数量
 					var coins =1;
 					if(data[2]>=10) coins =10;
 					if(data[2]>=100) coins =100;
@@ -678,6 +706,12 @@ cc.Class({
 						//var act = cc.sequence(cc.moveTo(1, -200, - this.node.height/2),finished);
 						coin.emit('GetCoin',{action:act});	
 					}
+					if(!cc.isValid(f[i])){
+						cc.log('一条不存在的鱼');
+						continue;
+					}
+					if(data[0] == global.myid)
+						this.AC.emit('dead',{type:f[i].fishtype});
 					//奖金特效
 					if(f[i].fishtype &&  f[i].fishtype >=12 ){
 						
@@ -689,7 +723,7 @@ cc.Class({
 							this.Reward(seat,f[i].fishtype,data[2]);
 						}
 						//大鱼死亡爆炸效果
-						var e = cc.instantiate(this.prefab[Ptype.BIFISHDEAD]);
+						var e = cc.instantiate(this.prefab[Ptype.BIGFISHDEAD-0]);
 						e.parent =this.node;	
 						e.setPosition(f[i].getPosition());
 					} 
@@ -834,10 +868,10 @@ cc.Class({
 		} 
 
 		if(lv>this._gunstyle.data.length) lv =this._gunstyle.data.length;
-		global.ui.emit('setgunlevel',{seat:seat,level:lv});			
+		global.ui.emit('setgunlevel',{seat:seat,level:this._gunstyle.data[lv-1].cost});			
 
 		if(seat == global.myseat)
-			global.mygunlv = Number(lv);		
+			global.mygunlv =lv-0;		
 		
 		//给对应炮发消息，改变类型
 		//console.log(this._gunstyle);
@@ -855,9 +889,11 @@ cc.Class({
 		};		
 	} ,
 
-	PlayerChat:function(data){
-		var seat = this.GetPlayerSeat(data[0]);
-		global.ui.emit('chat',{seat:seat,msg:data[1]});
+	PlayerChat:function(data){		
+		var user =JSON.parse(data[0]);
+		var seat = this.GetPlayerSeat(user.id);	
+		//cc.log(user);	
+		global.ui.emit('chat',{seat:seat,nick:user.nickname,msg:data[1]});
 	},
 
 	CloseSocket:function(){		
@@ -899,7 +935,7 @@ cc.Class({
 	//大奖转盘
 	Reward:function(seat,id,num){
 
-		var n = cc.instantiate(this.prefab[Ptype.REWARD]);
+		var n = cc.instantiate(this.prefab[Ptype.REWARD-0]);
 		n.parent =global.ui;
 		//if(global.myseat>2) n.rotation = 180;
 		//n.setPosition(0,0);
@@ -927,7 +963,7 @@ cc.Class({
 
 	//boss 奖
 	BossReward:function(gold){
-		var n = cc.instantiate(this.prefab[Ptype.BOSSREWARD]);
+		var n = cc.instantiate(this.prefab[Ptype.BOSSREWARD-0]);
 		n.parent =global.ui;	
 		n.setPosition(0,0);
 
@@ -964,7 +1000,7 @@ cc.Class({
 			if(v.y>0) r= -Math.abs(r);
 			else r = Math.abs(r);
 			//生成闪电链
-			var n = cc.instantiate(this.prefab[Ptype.LIGHTNING]);
+			var n = cc.instantiate(this.prefab[Ptype.LIGHTNING-0]);
 			n.parent = this.node;
 			n.setPosition(sp);
 			n.rotation = r;
@@ -972,7 +1008,7 @@ cc.Class({
 			n.setSiblingIndex(1);
 			
 			//生成闪电球
-			var n2 = cc.instantiate(this.prefab[Ptype.LIGHTNINGBALL]);
+			var n2 = cc.instantiate(this.prefab[Ptype.LIGHTNINGBALL-0]);
 			n2.parent = this.node;
 			n2.setPosition(ep);
 			//n2.setSiblingIndex(n2.getSiblingIndex()+ this.fishlayer.childrenCount);
@@ -997,7 +1033,7 @@ cc.Class({
 	
 		for(let i=0;i<10;i++){
 		
-			var fish = cc.instantiate(this.v_fish[4]);
+			var fish = cc.instantiate(this.v_fish[4-0]);
 			fish.parent = this.fishlayer;	
 			
 			fish.emit('loadpath',{pathid:'1121',offstep:i*10});

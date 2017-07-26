@@ -27,6 +27,8 @@ cc.Class({
         username:cc.Label,
         usergold:cc.Label,
         userdiamond:cc.Label,
+
+        btn_play:cc.Node,
     },
 
     // use this for initialization
@@ -45,7 +47,7 @@ cc.Class({
         }       
 
         global.socket.controller = this;
-       // this.win_rotary.active = true;
+        //this.win_rotary.active = true;//每日登录奖励转盘
 
        //开启socket心跳发送
        this.schedule(function() {
@@ -98,10 +100,10 @@ cc.Class({
                           
                 //取得自己的坐位号
                 if( global.myinfo != null && seat[i+1].split('::')[0] == global.myid  )	                         
-                    global.myseat = Number(seat[i]);	                       
+                    global.myseat = seat[i]-0;	                       
             }
 
-             console.log(global.myinfo);
+            //console.log(global.myinfo);
             if(global.myseat>4 || global.myseat<1  ) {
                 console.log('--未取得用户信息--');
                 return;
@@ -142,6 +144,7 @@ cc.Class({
     Btn_Fish:function(){
         //console.log('快速开始游戏');
 
+        this.btn_play.interactable =false; 
          var p = {
             version: 102,
             method: 3001,

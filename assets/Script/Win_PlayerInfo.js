@@ -28,7 +28,7 @@ cc.Class({
     },
 
     start:function(){
-        if(global.myinfo ==  null ) return;
+        if(!cc.isValid(global.myinfo)) return;
         this.nick.string = global.myinfo.nickname;
         this.golds.string = global.myinfo.score;
         this.Diamonds.string = global.myinfo.diamond;

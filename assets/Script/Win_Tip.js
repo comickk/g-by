@@ -35,7 +35,8 @@ cc.Class({
                this.btn_accept.active = true;
                 this.tipmsg=event.detail.msg;
 
-                if( typeof(event.detail.scene) != 'undefine')
+               // if( typeof(event.detail.scene) != 'undefine')
+               if(cc.isValid(event.detail.scene))
                  this._scene = event.detail.scene;
 
             this.tiplabel.string = this.tipmsg;

@@ -25,6 +25,9 @@ cc.Class({
 
         _lastnick:'',
         _lastpass:'',       
+
+        _loginnick:'',
+        _loginpass:'',
     },
 
     // use this for initialization
@@ -35,11 +38,26 @@ cc.Class({
          this.node.on('setlastnick',function(event){
             this._lastnick = event.detail.nick;
             this._lastpass = event.detail.pass;
-              this.ebLoginId.string = this._lastnick;
+            this.ebLoginId.string = this._lastnick;
          },this);
 
         this.node.on('selectid',  this.btn_start,this);
        
+        this.node.on('createid',function(event){
+             this._lastnick = event.detail.nick;
+             this._lastpass = event.detail.pass;
+             this.ebLoginId.string = this._lastnick;
+        },this);
+
+        this.node.on('login',function(event){
+           
+            this.Send(event.detail.arg);
+            this._loginnick = event.detail.nick;
+            this._loginpass = event.detail.pass;
+             this.popwinlayer.active = true;
+            this.logintip.active = true;
+        },this);
+
          //初始化 anysdk
         global.anysdk = require('PluginAnySdk').Init();
         
@@ -49,7 +67,7 @@ cc.Class({
 
         
          this._lastnick = cc.sys.localStorage.getItem('usernick');
-          if( this._lastnick  != null){
+          if( cc.isValid(this._lastnick )){
             
           //  console.log(this._lastnick);
             this.ebLoginId.string = this._lastnick;
@@ -190,11 +208,14 @@ cc.Class({
         //cc.sys.localStorage.removeItem(key)
         */
 
-        if(this._lastnick!= null){
-          var arg ="user_name="+this._lastnick;
-         arg += "&user_pass="+this._lastpass;        
+        if(cc.isValid(this._lastnick)){
+            var arg ="user_name="+this._lastnick;
+            arg += "&user_pass="+this._lastpass;     
+            
+            this._loginnick = this._lastnick;
+            this._loginpass = this._lastpass;
 
-         this.Send(arg);
+            this.Send(arg);
 
         //   cc.director.preloadScene('hall', function () {
         //           cc.director.loadScene('hall');
@@ -214,7 +235,7 @@ cc.Class({
 
     GetAuthCode:function(event){
 
-        console.log( event.detail );
+       // console.log( event.detail );
 
         global.socket.Init(event.detail.server,event.detail.code); 
 
@@ -227,7 +248,6 @@ cc.Class({
             cc.sys.localStorage.setItem('usernick', event.detail.nick);
             cc.sys.localStorage.setItem('userpass', event.detail.pass);
         }
-
         //--------账号记录-----------
         
         var namelist = JSON.parse(cc.sys.localStorage.getItem('userData'));
@@ -238,8 +258,8 @@ cc.Class({
         //     this.logintip.active = false;
         //     return;
         // }
-
-        if(namelist!=null && namelist.length >0 ){
+        
+        if(cc.isValid(namelist) && namelist.length >0 ){
             var ishave = false;
            // for(let n of namelist){
             for(let i=0;i<namelist.length;i++){
@@ -249,7 +269,7 @@ cc.Class({
                     break;
                 }
             }
-            if(!ishave){
+            if(!ishave){               
                 namelist.push( {
                     id:event.detail.nick,
                     pass:event.detail.pass
@@ -281,24 +301,40 @@ cc.Class({
         var self = this;
         
        //  var url ="http://192.168.2.173/client/user/login?";
-         var url ='http://'+global.socket.URL +'/client/user/login?';
+       var url ='http://'+global.socket.URL +'/client/user/login?';
        var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function () {
             if (xhr.readyState == 4 && (xhr.status >= 200 && xhr.status < 400)) {
-            var response = xhr.responseText;
-            // console.log(response);
-            var s = JSON.parse(response);            
-            console.log(s)
+                var response = xhr.responseText;
+                // console.log(response);
+                var s = JSON.parse(response);            
+                //console.log(s)
 
-            self.node.emit('getauthcode',{code:s.data[0],server:s.data[1],
-                    nick:self._lastnick,
-                    pass:self._lastpass});
-            // }else{
-            //     console.log('无法登录');
-            // }
+                if(cc.isValid(s.error)){
+                    self.win_tip.active = true;
+                    self.win_tip.emit('settip',{type:2,msg:'账号或密码错误'});
+                   
+                //    switch(s.error.code){
+                //        case '101':
+                //        break;
+                //    }
+                }else{
+                   
+                    self.node.emit('getauthcode',{code:s.data[0],server:s.data[1],
+                            nick:self._loginnick,
+                            pass:self._loginpass});
+                            //  nick:self._lastnick,
+                            // pass:self._lastpass});
+
+                    self.popwinlayer.active = true;
+                    self.logintip.active = true;
+                    // }else{
+                    //     console.log('无法登录');
+                    // }
+                }
             }
         };
-
+       
         xhr.open("POST", url+arg, true);
         xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded;");
         xhr.send(arg);

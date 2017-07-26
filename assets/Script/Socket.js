@@ -4,7 +4,7 @@ function gamesocket(){
 
 
 }
-   //gamesocket.prototype.URL = '192.168.2.173';//'118.190.89.153';
+  // gamesocket.prototype.URL = '192.168.2.173';//'118.190.89.153';
 
    gamesocket.prototype.URL = '118.190.89.153';
    gamesocket.prototype.ws=null;

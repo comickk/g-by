@@ -55,6 +55,11 @@ cc.Class({
 			this.win_tip.emit('settip',{type:2,msg:'与服务器的联接已断开,请重新登录',scene:'login'});
 		},this);
 
+		this.node.on('error',function(event){
+			this.win_tip.active = true;
+			this.win_tip.emit('settip',{type:2,msg:event.detail.msg,scene:'login'});
+		},this);
+
 		this.node.on('setgunlevel',function(event){
 		
 			var seat = event.detail.seat-1;
@@ -80,7 +85,7 @@ cc.Class({
 				ice.opacity= 100;
 				ice.runAction(cc.fadeTo(1,255));
 
-				if(event.detail.seat == global.myseat){
+				if(event.detail.seat-0 == global.myseat){
 					this.btn[6].getChildByName('num').getComponent(cc.Label).string= event.detail.num;				
 					//this.btn[6].getComponent(cc.Button).interactable = false;
 				}
@@ -97,8 +102,10 @@ cc.Class({
     			if(seat > 1) seat -= 2;
     			else seat += 2;
 			}		
-			
+		
 			this.playerInfo[seat].emit('chat',{msg:event.detail.msg});
+			if(global.myseat != event.detail.seat-0)
+				this.win_chat.emit('chat',{nick:event.detail.nick,msg:event.detail.msg});
 			
 		},this);
 
@@ -117,7 +124,7 @@ cc.Class({
 			return;
 		} 
 
-		if(global.myseat == seat){
+		if(global.myseat == seat-0){
 			//添加位置提示
 			this.playertool.active = true;
 			this.seattip.active =true;
@@ -141,7 +148,7 @@ cc.Class({
 		this.playerInfo[seat-1].emit('playercome',{name:msg.name,gold:msg.gold,diamond:msg.diamond,lv_curr:msg.lv_curr,lv_max:msg.lv_max});
 		
 		//添加自己
-		if(global.myseat ==  msg.seat){
+		if(global.myseat ==  msg.seat-0){
 			this.btn[5].active = true;//锁定
 			this.btn[6].active = true;//冰冻
 
@@ -227,8 +234,10 @@ cc.Class({
 		//向服务器发
 		// console.log(global.mygunlv);
 		var lv =global.mygunlv-1;
-		if(global.mygunlv ==1)			
-			lv = global.myinfo.bullet_level;		
+		if(global.mygunlv ==1 &&  global.myinfo.bullet_level > 1)			
+			lv = global.myinfo.bullet_level;
+		else
+			return;		
 		
 		var p = {
 				version: 102,
@@ -358,7 +367,7 @@ cc.Class({
 	},
 	
 	BtnPlayer:function(event, customEventData){
-		 var s1 = Number(customEventData);
+		 var s1 = customEventData-0;
 		 var s2 =global.myseat;
 		  
 		 // cc.log('显示玩家信息'+s1);

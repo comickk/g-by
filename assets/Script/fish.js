@@ -113,7 +113,7 @@ cc.Class({
  
     f_SelectFish:function(){		
     	this.v_select =true;
-		if(this.v_lockicon==null || this.v_islock) return;	//非 高分目标   或 已被锁定  
+		if(cc.isValid(this.v_lockicon) || this.v_islock) return;	//非 高分目标   或 已被锁定  
 		//console.log('---------------- '+this.node.name);
 		
 		global.game.emit('lockfish',{fish:this.node});		

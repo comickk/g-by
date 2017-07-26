@@ -46,7 +46,10 @@ cc.Class({
                 }
             }
             else
-                namelist.splice(i,1);     
+                namelist.splice(i,1);
+            
+            cc.sys.localStorage.setItem('userData', JSON.stringify(namelist));  
+
         }      
         this.node.destroy();
     },

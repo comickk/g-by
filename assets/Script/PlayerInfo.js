@@ -30,7 +30,7 @@ cc.Class({
 
             this.gunlevel.string = event.detail.lv_curr;
 
-              if(event.detail.gold == 0){
+              if(event.detail.gold-0 == 0){
                 if(!this.bankruptcy.active)
                     this.bankruptcy.active = true;
             }
@@ -52,7 +52,7 @@ cc.Class({
         this.node.on('changegold',function(event){
             this.glod.string = event.detail.gold.toString();
 
-            if(event.detail.gold == 0){
+            if(event.detail.gold-0 == 0){
                 if(!this.bankruptcy.active)
                     this.bankruptcy.active = true;
             }

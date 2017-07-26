@@ -12,7 +12,11 @@ cc.Class({
 
     // use this for initialization
     onLoad: function () {
-
+        this.node.on('chat',function(event){
+             var line = cc.instantiate(this.chatline);
+             line.getComponent(cc.Label).string =  event.detail.nick +':'+event.detail.msg;
+             line.parent = this.layout.node;
+        },this);
     },
    
     Btn_Send:function(){

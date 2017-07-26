@@ -15,7 +15,7 @@
           "value": 1
         },
         {
-          "frame": 0.75,
+          "frame": 0.825,
           "value": 8
         }
       ],
@@ -25,7 +25,7 @@
           "value": 1
         },
         {
-          "frame": 0.75,
+          "frame": 0.825,
           "value": 8
         }
       ],
@@ -35,11 +35,11 @@
           "value": 255
         },
         {
-          "frame": 0.75,
+          "frame": 0.825,
           "value": 50
         },
         {
-          "frame": 0.9,
+          "frame": 0.975,
           "value": 0
         }
       ]
