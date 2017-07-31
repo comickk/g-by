@@ -11,13 +11,11 @@ cc.Class({
 			v_lockicon:{
 				default:null,
 				type:cc.Node,
-			},
-			v_select:{
-				default:false,
-				visible:false
-			},			
+			},		
 		
 			v_islocal:true,		
+
+			_select:false,//触摸时选中的标志
 
 			_type:1,
 
@@ -34,6 +32,12 @@ cc.Class({
 			_height:0,
 
 			_ishide:false,
+
+			_shuimu:21,
+
+			//-----测试----
+			_lasttime:0,
+
     },
 
     // use this for initialization
@@ -54,27 +58,27 @@ cc.Class({
 							  this.node.stopAllActions();
 							  this.node.getComponent(cc.Collider).enabled =false;                              						 
                               anim.play(anim.getClips()[1].name);
-        },this);
+		},this);
+							
+		var animdead = anim.getAnimationState(anim.getClips()[1].name);
+		animdead.on('finished',   this.f_FishDead ,   this);//死亡动画结束时
 
-		this.node.on('synchro',function(event){
-			//console.log(this);
+		this.node.on('synchro',function(event){			
 			if(!this._ishide)
-				this._step = event.detail.step;
-			//console.log('-----'+ this._step + '  ' + event.detail.step);
+				this._step = event.detail.step+1;			
 		},this);
 
 		this.node.on('freeze',this.Freeze,this);
 		this.node.on('unfreeze',this.UnFreeze,this);
 		
-		var animdead = anim.getAnimationState(anim.getClips()[1].name);
-		animdead.on('finished',   this.f_FishDead ,   this);
+		
 
 		this.node.on('hide',this.Hide,this);
 		   
 		//if(this.lockicon==null) return;			
 		this.node.on('touchstart',this.f_SelectFish,this);
-		this.node.on('touchend',   function(){this.v_select = false;},this);	
-		this.node.on('touchcancel',function(){this.v_select = false;},this);	
+		this.node.on('touchend',   function(){this._select = false;},this);	
+		this.node.on('touchcancel',function(){this._select = false;},this);			
 
 		this.node.on('lock',function(){
 			this.v_islock = true;
@@ -90,6 +94,10 @@ cc.Class({
 				
 			this.LoadPath(event.detail.type,event.detail.pathid,event.detail.offstep,event.detail.isloop);
 		},this);
+
+		//--
+		//this.node.on('test',this.test2,this);
+
 
 		//按轨迹移动
 		// this.node.on('move',function(){
@@ -107,73 +115,105 @@ cc.Class({
 
 	onDestroy :function( ){	
 
+		if(this.v_islock )	//该鱼在被锁定情况下打死，通知取消锁定			
+			global.game.emit('cancellock');		
+
+		//如果该对象为触摸时点中的对象
+		if(this._select) 
+			global.game.emit('touchend');	
+
 		this.node.targetOff(this);
 	},  
 
  
     f_SelectFish:function(){		
-    	this.v_select =true;
-		if(cc.isValid(this.v_lockicon) || this.v_islock) return;	//非 高分目标   或 已被锁定  
+		this._select =true;		
+		if(!cc.isValid(this.v_lockicon) || this.v_islock) return;	//非 高分目标   或 已被锁定  
 		//console.log('---------------- '+this.node.name);
-		
+
+		// this._select =true;
 		global.game.emit('lockfish',{fish:this.node});		
 	},
    
     
     f_FishDead:function() {
-       // console.log('------这条鱼挂了------');
-      //  this.node.stopAllActions(); 
-	  
-	  	if(this.v_islock )	//该鱼在被锁定情况下打死，通知取消锁定			
-			global.game.emit('cancellock');		
-		else
-			if(this.v_select) global.game.emit('touchend');	
 		
 		this.node.destroy();
     },	
 
 	Hide:function(){
 		this._ishide =true;
-		this.node.getComponent(cc.Collider).enabled =false;          
-
-		if(this.v_islock )	//该鱼在被锁定情况下，通知取消锁定			
-			global.game.emit('cancellock');		
-		else
-			if(this.v_select) global.game.emit('touchend');	
-
+		this.node.getComponent(cc.Collider).enabled =false;        
+	
 		// var layer = cc.find("Canvas/GameController/DelFishLayer");
 		// if(cc.isValid(layer))
 		// 	this.node.parent = layer;
+		//cc.log('----这条鱼要隐藏了---');
+		//方案三 在当前方向一定范围内随机位置 角度，加速游出 
+		var hidetime = 1.5;
+		var len = 400;
+		var dr =cc.randomMinus1To1()*60;
+		var hu = (Math.PI/180)*(this.node.rotation+dr);
+		var dy = -Math.sin(hu)*len;
+		var dx = Math.cos(hu)*len;		
+
+		var anim = this.body.getComponent(cc.Animation);
+		var clip = 	  anim.getClips()[0];
+		if(cc.isValid(clip)){
+			var animstate = anim.getAnimationState(anim.getClips()[0].name );		
+			if( animstate != null) animstate.speed =4; 
+		}
+	
+		this.unschedule (this.FishMove);
+		//this.body.stopAllActions( );
+		// this.body.runAction( cc.spawn( 	cc.moveBy(hidetime,dx,dy),
+		// 								cc.rotateBy(hidetime/2,dr),
+		// 								cc.fadeOut(hidetime) ));
+		// var finished = cc.callFunc(function(){
+		// 	this.node.destroy();
+		// }, this);										  
+		this.body.runAction( cc.sequence(	cc.spawn( 	cc.moveBy(hidetime,dx,dy),
+		 												cc.rotateBy(hidetime/3,dr),
+														cc.fadeOut(hidetime) ),
+		 									cc.callFunc(function(){
+														 this.node.destroy();},this)));	
+		// this.scheduleOnce(function() {
+     	//  	this.node.destroy();
+		// }, hidetime);
+		 
+	//	cc.log('----3----');
+			// var finished = cc.callFunc(this.CoinFinish, this, {coin:coin,text:ct});
+			//var act = cc.sequence(cc.moveTo(len, that.gunseat[seat-1].x,that.gunseat[seat-1].y),finished);
 
 		//轨迹超过 50%的 加速游走
-		if(this._step > FishMath.fishpath.data[this._pathID].length*0.6 ){
-			this._isloop = false;			
+		// if(this._step > FishMath.fishpath.data[this._pathID].length*0.6 ){
+		// 	this._isloop = false;			
 			
-			this._stepwidth= parseInt( (FishMath.fishpath.data[this._pathID].length - this._step)/4);
+		// 	this._stepwidth= parseInt( (FishMath.fishpath.data[this._pathID].length - this._step)/4);
 
-			var anim = this.body.getComponent(cc.Animation);	
-			var as = anim.getAnimationState();
-			if(as!= null) as.speed =3; 
+		// 	var anim = this.body.getComponent(cc.Animation);	
+		// 	var as = anim.getAnimationState();
+		// 	if(as!= null) as.speed =3; 
 
-			this.body.runAction(cc.fadeOut(1.2));
+		// 	this.body.runAction(cc.fadeOut(1.2));
 		
-			return;
-		}
+		// 	return;
+		// }
 
-		//未超过的 原地隐藏
-		var anim = this.body.getComponent(cc.Animation);	
+		// //未超过的 原地隐藏
+		// var anim = this.body.getComponent(cc.Animation);	
 		
-		if(cc.isValid(anim.getClips()[2])){
-			var animclip = anim.getClips()[2];				
+		// if(cc.isValid(anim.getClips()[2])){
+		// 	var animclip = anim.getClips()[2];				
 
-			anim.play(animclip.name);
-		}else{
-			console.log('--no fish run anim--');
-			this.body.runAction(cc.fadeOut(0.8));
-		}
-		this.scheduleOnce(function() {
-     		this.node.destroy();
- 		}, 1);
+		// 	anim.play(animclip.name);
+		// }else{
+		// 	console.log('--no fish run anim--');
+		// 	this.body.runAction(cc.fadeOut(0.8));
+		// }
+		// this.scheduleOnce(function() {
+     	// 	this.node.destroy();
+ 		// }, 1);
 	
 
 		// //随机方向和角度
@@ -191,7 +231,7 @@ cc.Class({
 
 	//加载轨迹
 	LoadPath:function(type,pathid,offstep,isloop){	
-
+		
 		if(pathid >= FishMath.fishpath.data.length ) return;
 		if(offstep >= FishMath.fishpath.data[pathid].length) return;
 		this._type = type;
@@ -205,15 +245,25 @@ cc.Class({
 		
 		if(fp[0]){
 			this.node.setPosition(fp[0]*this._width, fp[1]*this._height);
-			this.node.rotation = fp[2];
+			//cc.log(this.node.fishtype + '  '+ this._shuimu);
+			if(this.node.fishtype != this._shuimu)//水母方向向上
+				this.node.rotation = fp[2];
+			else{
+				if(global.myseat >2)
+					this.node.scaleY = -1;
+			}
 		}
 
 		//开始按轨迹动运
 		if( FishMath.fishpath.data[this._pathID].length > 1 ){
+			this.FishMove();
 			this.schedule(function() {
 				this.FishMove();
 			}, this._steplen);
 		}
+
+	
+		//cc.log(animstate.name+'    '+animstate.speed)
 		//this.node.emit('move');
 
 		// var that  = this;
@@ -254,6 +304,7 @@ cc.Class({
 	},
 
 	FishMove:function(){
+		if(this._isice) return;
 		var fp ;//=  FishMath.fishpath.trail[this._pathID][this._step];
 		//if(!isNaN(fp[0])){
 
@@ -264,29 +315,31 @@ cc.Class({
 				//恢复轨迹初始位置
 				fp =  FishMath.fishpath.data[this._pathID][0];
 				this.node.setPosition(fp[0]*this._width, fp[1]*this._height);
-				this.node.rotation = fp[2];
-			}else{//不循环删除
+				if(this.node.fishtype != this._shuimu)//水母不设方向
+					this.node.rotation = fp[2];
+			}else{//不循环删除				
 				
-				if(this.v_islock )	//该鱼在被锁定情况下，通知取消锁定			
-					global.game.emit('cancellock');		
-				else
-					if(this.v_select) global.game.emit('touchend');	
 				this.node.destroy();
 			}
 		}else{
 			fp = FishMath.fishpath.data[this._pathID][this._step];
-			this.node.runAction(cc.spawn(cc.moveTo(this._steplen, fp[0]*this._width, fp[1]*this._height), 
-			cc.rotateTo (this._steplen,fp[2])));
+			if(this.node.fishtype != this._shuimu)//水母不设方向
+				this.node.runAction(cc.spawn(cc.moveTo(this._steplen, fp[0]*this._width, fp[1]*this._height), 
+					cc.rotateTo (this._steplen,fp[2])));
+			else
+				this.node.runAction(cc.moveTo(this._steplen, fp[0]*this._width, fp[1]*this._height));
 			//this.node.setPosition(fp[0]*this._width, fp[1]*this._height);
+			this._lasttime = new Date().getTime();
 		}
-		if(!this._isice)
-			this._step+= this._stepwidth;				
+		
+		this._step+= this._stepwidth;				
 	},
 
 	Freeze:function(){
 		if(this._ishide) return;
 		this._isice = true;
 
+		this.node.pauseAllActions ( );
 		//停止游动 动画
 		var anim = this.body.getComponent(cc.Animation);	
 		
@@ -298,7 +351,8 @@ cc.Class({
 	UnFreeze:function(){
 		this._isice = false;
 
-		//停止游动 动画
+		this.node.resumeAllActions(); 
+		//继续游动 动画
 		var anim = this.body.getComponent(cc.Animation);	
 		
 		if(cc.isValid(anim.getClips()[0])){
@@ -306,7 +360,25 @@ cc.Class({
 			anim.resume(animclip.name);
 		}//else console.log('没找到动画体');	
 	},
-    
+	
+	test2:function(event){
+		var msg = event.detail;
+		var len = (new Date().getTime() -this._lasttime)/300;
+		cc.log('------len ='+ len);
+
+		var s0 = FishMath.fishpath.data[this._pathID][this._step-1];
+		var s1 = FishMath.fishpath.data[this._pathID][this._step];
+		var rx = s0[0]+(s1[0]-s0[0])*len;
+		var ry = s1[1]+(s1[1]-s0[1])*len;
+
+		cc.log('----根据路径点计算位置  = '+ rx+'  '+ry);
+		cc.log('----实际位置   = '+ this.node.x/(cc.Canvas.instance.node.width/2)+'  '+this.node.y/(cc.Canvas.instance.node.height/2));
+
+		var d1=	Math.sqrt(  Math.pow(msg.x/(cc.Canvas.instance.node.width/2)-rx,2)+ Math.pow(msg.y/(cc.Canvas.instance.node.height/2)-ry,2) );
+		cc.log('------d1 = '+ d1);
+
+	},
+
     test:function(event ) {
 		//let x = cc.randomMinus1To1()* (cc.Canvas.instance.node.width/2 - 100);
 		//let y = cc.randomMinus1To1()* (cc.Canvas.instance.node.height/2-100);			
@@ -354,3 +426,8 @@ cc.Class({
 	
     
 });
+/**
+ * 
+ *   幸运值  =   1 -（玩家目前的金币 / 玩家进入游戏时的金币数）
+ *  
+ */

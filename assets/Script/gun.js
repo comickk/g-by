@@ -14,13 +14,12 @@ cc.Class({
 		v_bulletpos:cc.Node,
 		v_bullet: cc.Prefab, 
 		
-        v_anim: cc.Animation,
-		
-		v_sound:[cc.AudioClip],
+        v_anim: cc.Animation,		
 		
 		//是否已准备好发射，防止射速过快
-		v_isfire:{default:false,visible:false},
-		v_isready:{default:true,visible:false},
+		_isfire:false,
+		_isready:true,
+		
 		
 		v_gunsprite:[cc.SpriteFrame],
 		v_bulletsprite:[cc.SpriteFrame],		
@@ -90,31 +89,33 @@ cc.Class({
 		//计算炮弹生命周期
 		this.v_bulletlife = this.range/this.bulletspeed;
 		
-        this.v_anim = this.getComponent(cc.Animation);
-		this.v_audio = this.getComponent(cc.AudioSource);
+        this.v_anim = this.getComponent(cc.Animation);		
 		this.node.zIndex =10;
 		
 		//添加事件				
 		this.node.on('otherfire',this.f_OtherFire,this);
         this.node.on('fire',this.f_Fire,this);
-		this.node.on('stopfire',function(){ this.v_isfire = false;},this);
+		this.node.on('stopfire',function(){ this._isfire = false;},this);
 		this.node.on('changetype',this.f_SetType,this);	
 		
 		this.node.on('lockfish',function(event){	
+						if(this.v_locktarget!=null){//改变锁定对象
+							this.v_locktarget.emit('unlock');							
+						}
 						this.v_locktarget = event.detail.fish;
 						this.v_locktarget.emit('lock');
-						this.v_isfire = true;
+						this._isfire = true;
 		},this);
 		this.node.on('unlockfish',function(){
 						if(this.v_locktarget!=null){
 						this.v_locktarget.emit('unlock');
 						this.v_locktarget = null;
-						this.v_isfire = false;
+						this._isfire = false;
 					}
 			},this);
 		this.node.on('cancellock',function(){						
 						this.v_locktarget = null;
-						this.v_isfire = false;
+						this._isfire = false;
 		},this);		
     },
 
@@ -124,7 +125,7 @@ cc.Class({
     },
     
     update: function (dt) {
-		if(this.v_isfire && this.v_isready) this.f_AutoFire();
+		if(this._isfire && this._isready) this.f_AutoFire();
      },
 
     f_InitGun:function(seat,type,parent,r,x,y){
@@ -154,9 +155,9 @@ cc.Class({
 		
 		if( this.node.y >0  && r <= 0 )return;
 		if( this.node.y <0  && r >= 0 )return;
-		//if(this.v_isfire)	return;	
+		//if(this._isfire)	return;	
 		this.node.rotation = r;	
-		this.v_isfire = true;						
+		this._isfire = true;						
     },
 	
 	f_AutoFire:function(){			
@@ -175,12 +176,18 @@ cc.Class({
 			
 			var mp = cc.v2(this.v_locktarget.x+this.v_cw/2,this.v_locktarget.y+this.v_ch/2);
 		
+			this._mousepos = mp;
 			var r = FishMath.GetAngle(wx,wy,mp.x,mp.y);
 			this.node.rotation = r;	
 		}		
 		
-        this.v_anim.play("gun"+this.v_type);  
-		cc.audioEngine.play(this.v_sound[0], false, 1);
+		if(this.v_type<4){
+			this.v_anim.play("gun"+this.v_type);  
+		}else{
+			this.v_anim.play('vipgun'+this.v_type-3);
+		}
+		
+		global.ac.emit('fire');		
 
 		var bid = FishMath.UUID(); //new Date().getTime()+'';
 		
@@ -230,9 +237,9 @@ cc.Class({
 		sp_bullet.node.runAction(cc.sequence(cc.moveTo(tp[2]/this.v_bulletspeed,tp[0],tp[1]),finished));
 		sp_bullet.ismoveing = true;
 																
-		this.v_isready = false;
+		this._isready = false;
 		var that = this;
-		this.scheduleOnce( function() {	that.v_isready = true;}, 0.2);
+		this.scheduleOnce( function() {	that._isready = true;}, 0.2);
 	},
 	
 	f_OtherFire(event){
@@ -248,8 +255,7 @@ cc.Class({
 		var r = FishMath.GetAngle(wx,wy,mp.x,mp.y);
 		this.node.rotation = r;	
 		
-		this.v_anim.play("gun"+this.v_type);  
-		cc.audioEngine.play(this.v_sound[0], false, 1);
+		this.v_anim.play("gun"+this.v_type);  		
 	
 		//计算炮弹的目标点
 		var tp = FishMath.GetFirePos(this.node.rotation,this.node.x,this.node.y,this.v_cw/2,this.v_ch/2);	
@@ -274,8 +280,8 @@ cc.Class({
 	},
     //初始化炮类型
 	//设置炮类型
-    f_SetType:function(event){	
-		cc.audioEngine.play(this.v_sound[1], false, 1);
+    f_SetType:function(event){		
+		global.ac.emit('change');
 		this.v_type = event.detail.type;
 		this.node.getComponent(cc.Sprite).spriteFrame = this.v_gunsprite[this.v_type-1];
 		

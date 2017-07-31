@@ -1,3 +1,4 @@
+var global = require('Global');
 cc.Class({
     extends: cc.Component,
 
@@ -7,11 +8,13 @@ cc.Class({
 
     // use this for initialization
     onLoad: function () {
+
+        global.broad = this.node;
     	this.node.on('settext',this.SetText,this);
 
-        this.node.emit('settext',{text:'11111111111111111111111111111111111111111111111111111'});
+        this.node.emit('settext',{text:'我是一个公告条，不要在意我，我只会时不时的发一些垃圾信息而已，快点开始捕你的鱼吧~~~~'});
 
-        cc.game.addPersistRootNode(this.node);
+      //  cc.game.addPersistRootNode(this.node);
     },	
 
     SetText:function(event){

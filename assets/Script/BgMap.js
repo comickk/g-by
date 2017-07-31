@@ -1,9 +1,11 @@
+var global = require('Global');
 cc.Class({
     extends: cc.Component,
 
     properties: {
       wave:cc.Prefab,
       switchbg:cc.Node,
+      tip:cc.Node,
       map:[cc.SpriteFrame],
       music:[cc.AudioClip],
 
@@ -13,8 +15,7 @@ cc.Class({
     },
 
     // use this for initialization
-    onLoad: function () {
-  
+    onLoad: function () {  
 
         this.node.on('changemap',this.ChangeMap,this);
         this.ChangeMapFinish();
@@ -29,6 +30,16 @@ cc.Class({
         this.switchbg.x =this.node.width/2;
         //this.switchbg.y =0; 
 
+        // //显示提示文字
+        this.tip.active = true;
+        this.tip.runAction(cc.fadeIn(0.5));
+        var that = this;
+        this.scheduleOnce(function(){
+            that.tip.active =false;
+        },3);
+
+
+        global.ac.emit('switchbg');
         var w =   cc.instantiate(this.wave);
         w.parent = this.switchbg;
         w.scaleX= w.scaleY =  this.node.height/w.height;    
@@ -50,9 +61,9 @@ cc.Class({
     ChangeMapFinish:function(){
         
        this.node.getComponent(cc.Sprite).spriteFrame  = this.map[this._mapIndex++];
-
-      
-       this._curAudioID = cc.audioEngine.play(this.music[this._musicIndex++], true, 0.7);
+     
+       this._curAudioID = cc.audioEngine.play(this.music[this._musicIndex++], true,global.musicvol);
+       global.musicid = this._curAudioID;
 
         if(this._mapIndex>= this.map.length) this._mapIndex=0;
         if(this._musicIndex>= this.music.length) this._musicIndex=0;

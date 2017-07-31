@@ -1,6 +1,6 @@
 {
   "__type__": "cc.AnimationClip",
-  "_name": "gun5",
+  "_name": "vipgun4",
   "_objFlags": 0,
   "_rawFiles": null,
   "_duration": 0.26666666666666666,
@@ -14,37 +14,37 @@
           {
             "frame": 0,
             "value": {
-              "__uuid__": "7e2e4af7-aa5e-4be7-a973-ee50f606473a"
+              "__uuid__": "d1505dbb-446a-41b7-a2b0-4c08d2c5eb69"
             }
           },
           {
             "frame": 0.05,
             "value": {
-              "__uuid__": "ef9a1ba5-43b4-41f8-96c4-cc15462cdfb5"
+              "__uuid__": "e8e158b2-5c62-4ed3-ad24-7dbcef419734"
             }
           },
           {
             "frame": 0.1,
             "value": {
-              "__uuid__": "01bf06d0-cd77-4f18-bba4-80bb4070922d"
+              "__uuid__": "3910e2da-2a52-4c6b-83e8-ae0d15f6ace0"
             }
           },
           {
             "frame": 0.15,
             "value": {
-              "__uuid__": "0d15dfba-809f-4ca6-beba-98616fe2fc0b"
+              "__uuid__": "44b4889d-287f-4bb7-ae4b-485b9a8885a2"
             }
           },
           {
             "frame": 0.2,
             "value": {
-              "__uuid__": "73af9551-03de-4a06-b2d8-1f8e54681711"
+              "__uuid__": "51a5d4c2-eb04-4c5d-bc57-88fd251446bb"
             }
           },
           {
             "frame": 0.25,
             "value": {
-              "__uuid__": "7e2e4af7-aa5e-4be7-a973-ee50f606473a"
+              "__uuid__": "d1505dbb-446a-41b7-a2b0-4c08d2c5eb69"
             }
           }
         ]

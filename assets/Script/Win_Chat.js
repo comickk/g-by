@@ -5,26 +5,28 @@ cc.Class({
     properties: {
         input:cc.EditBox,
         chatline:cc.Prefab,
+        view:cc.ScrollView,
         layout:cc.Layout,
         _linnum:0, 
+
+        _isfirst:true,
       
     },
 
     // use this for initialization
     onLoad: function () {
-        this.node.on('chat',function(event){
-             var line = cc.instantiate(this.chatline);
-             line.getComponent(cc.Label).string =  event.detail.nick +':'+event.detail.msg;
-             line.parent = this.layout.node;
+        this.node.on('chat',function(event){           
+            this.AddChatLine(event.detail.nick +':'+event.detail.msg);
         },this);
     },
    
     Btn_Send:function(){
         if(this.input.string=='') return;
-        var line = cc.instantiate(this.chatline);
-        line.getComponent(cc.Label).string =  global.myinfo.nickname +':'+ this.input.string;
-        // console.log( new Date() );可加上日期
-        line.parent = this.layout.node;
+        this.AddChatLine(global.myinfo.nickname +':'+ this.input.string);
+        // var line = cc.instantiate(this.chatline);
+        // line.getComponent(cc.Label).string =  global.myinfo.nickname +':'+ this.input.string;
+        // // console.log( new Date() );可加上日期
+        // line.parent = this.layout.node;
        
         //发送消息        
         var that = this;
@@ -42,5 +44,24 @@ cc.Class({
         this.input.string='';
         //
         this.Hide();
+    },
+    AddChatLine:function(msg){
+         if(this._isfirst){
+                this.layout.node.children[0].getComponent(cc.Label).string =msg;
+                this._isfirst = false;
+            }else{
+                var line = cc.instantiate(this.chatline);
+                line.getComponent(cc.Label).string =  msg;
+                line.parent = this.layout.node;
+                //行数超过就删除
+                var num = this.layout.node.childrenCount;
+               
+                if(num > 20)
+                    this.layout.node.children[0].destroy();
+
+                if(num> 8)
+                    this.view.scrollToBottom();
+            }
     }
+
 });

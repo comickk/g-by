@@ -11,6 +11,7 @@ cc.Class({
         wait:cc.Node, 
         infobg:cc.Node,
         chat:cc.Node,
+        icetip:cc.Node,
 
         bankruptcy:cc.Node,
         //_nick:'',
@@ -46,6 +47,12 @@ cc.Class({
            this.online.active = false;
         },this);
 
+
+        this.node.on('freeze',function(){
+            this.icetip.active = true;
+            var that = this;
+            this.scheduleOnce( function() {	that.icetip.active = false;}, 3);
+        },this);
 
         this.node.on('setgunlevel',function(event){ this.gunlevel.string = event.detail.level},this);
 

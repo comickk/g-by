@@ -1,0 +1,55 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "vipgun5",
+  "_objFlags": 0,
+  "_rawFiles": null,
+  "_duration": 0.26666666666666666,
+  "sample": 60,
+  "speed": 1,
+  "wrapMode": 1,
+  "curveData": {
+    "comps": {
+      "cc.Sprite": {
+        "spriteFrame": [
+          {
+            "frame": 0,
+            "value": {
+              "__uuid__": "68adf95b-6f8b-41dd-ae29-071561f0aba8"
+            }
+          },
+          {
+            "frame": 0.05,
+            "value": {
+              "__uuid__": "575afc79-3fb3-42a8-bb27-87518e881a0e"
+            }
+          },
+          {
+            "frame": 0.1,
+            "value": {
+              "__uuid__": "50c5c795-c2da-4ed1-b5eb-8dc77a4440b0"
+            }
+          },
+          {
+            "frame": 0.15,
+            "value": {
+              "__uuid__": "72565995-8d0c-4a35-b678-1d02260dacd7"
+            }
+          },
+          {
+            "frame": 0.2,
+            "value": {
+              "__uuid__": "5612e8aa-041d-4a60-87bc-b4a0f290b9c5"
+            }
+          },
+          {
+            "frame": 0.25,
+            "value": {
+              "__uuid__": "68adf95b-6f8b-41dd-ae29-071561f0aba8"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "events": []
+}

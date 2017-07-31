@@ -29,39 +29,33 @@ cc.Class({
 
     properties: {    
 		
-		AC:cc.Node,
+		//AC:cc.Node,
 		//v_server:cc.Node,		
 		
 		fishlayer:cc.Node,	
 		delfishlayer:cc.Node,	
 
 		bgmag:cc.Node,	
-
-		// 准备锁鱼
-		v_readylock:{
-			default:false,		
-			visible:false
-		},
 		
 		//--------------	
 		v_guns:[cc.Node],
 		prefab:[cc.Prefab],  //0  炮    1 网    2 金币	3 子弹  4 金币文字  5  奖金转盘     6 闪电链   7 闪电球  8 BOSS奖转盘 9 大鱼死亡爆炸效果 10掉落道具
 
-		gunseat:[cc.Node],
+		gunseat:[cc.Node],		
 		
-		v_sound:[cc.AudioClip],			
-		v_fish:[cc.Prefab],
-        
+		v_fish:[cc.Prefab],        
 		
 		//渔网图
 		v_netsprite:[cc.SpriteFrame],			
 	  
-		
+		// 准备锁鱼		
+		_readylock:false,					
 		//_playerinfo:[],
 		_seatid:[],
 		_roominfo:null,
 		
 		_gunstyle:null,
+		_gunstyle_fixed:1,
 
 		//_playerinfo:[],
 		//----------------测试
@@ -77,7 +71,7 @@ cc.Class({
 	
 
         this.node.width= cc.Canvas.instance.node.width;
-        this.node.height = cc.Canvas.instance.node.height;
+		this.node.height = cc.Canvas.instance.node.height;		
          
 		 //注册事件----------------
 		 //触屏事件，玩家本人开火
@@ -85,6 +79,9 @@ cc.Class({
 		this.node.on('touchmove',  this.Touch,this);	
         this.node.on('touchend',   this.TouchEnd,this);	
 		this.node.on('touchcancel',this.TouchEnd,this);	
+
+		var that =this;	
+
 		//子弹碰撞
 		this.node.on('collider',this.Collider,this);		
 		//this.node.on('setgun',this.SetGunType,this);
@@ -93,16 +90,20 @@ cc.Class({
 		// this.node.on('readylock',function(){ this.v_readylock = !this.v_readylock;
 		// 	if(!this.v_readylock) this.f_UnLockFish();
 		// },this);
+		
+		//接收按钮信息，开始锁鱼时间，技能进入CD-------
 		this.node.on('lockstart',function(){ 
-			this.v_readylock = true;
+			this._readylock = true;
 			var effect = this.gunseat[global.myseat-1].getChildByName("effect2");
 			if(effect!=null)	effect.active = true;				
 		},this);
 
-		this.node.on('lockend',this.UnLockFish,this);
-
+		//选中一条鱼
 		this.node.on('lockfish',this.LockFish,this);
-		this.node.on('cancellock',this.CancelLock,this);
+		this.node.on('lockend',this.UnLockFish,this); //锁定时间结束
+		this.node.on('cancellock',this.CancelLock,this); 
+		//----------------------
+
 
 		this.node.on('ready',function(){
 			if(!cc.isValid(this._gunstyle) || !cc.isValid(FishMath.fishpath))	return;		
@@ -138,7 +139,7 @@ cc.Class({
 		//  }, this);
        // node.on('touchstart', e_TouchDwon, this);	   
 	
-	     var that =this;
+	   
 	   //加载鱼的轨迹数据-----------------
 	   	var xhr1 = new XMLHttpRequest();
  		xhr1.onreadystatechange = function () {
@@ -157,7 +158,7 @@ cc.Class({
      	}
  	};
 	 //xhr.open("GET", "http://192.168.2.173/assets/fish.trail.json", true);
-	 xhr1.open("GET", "http://"+global.socket.URL +"/assets/fish.trail.json", true);
+	 xhr1.open("GET", "http://"+global.socket.URL +"/assets/fish.trail.json?"+new Date().getTime(), true);
 	 xhr1.send();
 	 
 	 //读取炮样式-----------
@@ -167,12 +168,12 @@ cc.Class({
      	if (xhr2.readyState == 4 && (xhr2.status >= 200 && xhr2.status < 400)) {
         	var response = xhr2.responseText;
 			
-			that._gunstyle = JSON.parse(response);		
+			that._gunstyle = JSON.parse(response);					
 			
 			that.node.emit('ready');
      	}
  	};	
-	xhr2.open("GET", "http://"+global.socket.URL +"/assets/cfg.bullet.json", true);
+	xhr2.open("GET", "http://"+global.socket.URL +"/client/cfg/bullet?"+new Date().getTime(), true);
 	xhr2.send();
 
 	//this._log = cc.find('console').getComponent(cc.Label);	
@@ -282,8 +283,10 @@ cc.Class({
 
 		//var group_info = data[1];
 		//if(this._roominfo == null)
-		this._roominfo = global.socket.MsgToObj(data[1]);
+		this._roominfo = global.socket.MsgToObj(data[1]);		
 		global.backid = this._roominfo.back_id;
+
+		this._gunstyle_fixed = this.GetGunStyle(this._roominfo.type);
 
 		
 		data = data[2];// [0]座号1  [1]ID1   [2]座号2   [3]ID2 .......			
@@ -307,8 +310,10 @@ cc.Class({
 						return;
 					}					
 
-					//显示锁定和冰冻的数量					
-					global.ui.emit('settools');							
+					//显示锁定和冰冻的数量
+					var cost = this.GetPropCost(this._roominfo.type);		
+						
+					global.ui.emit('settools',{ice:cost,lock:cost});							
 				}else{
 					this._seatid[seat] = id;//data[i+1].split('::')[0];						
 				}
@@ -327,9 +332,9 @@ cc.Class({
 				}
 				//cc.log(user);						
 
-				var style = 1;
-				if( cc.isValid( this._gunstyle.data[level-1])) 
-					style = this._gunstyle.data[level-1].style;
+				var style = this._gunstyle_fixed;
+				//if( cc.isValid( this._gunstyle.data[level-1])) 
+				//	style = this._gunstyle.data[level-1].style;
 				this.v_guns[s] = cc.instantiate(this.prefab[Ptype.GUN-0]);      
 				this.v_guns[s].getComponent('gun').f_InitGun(seat,style, this.node,this.gunseat[s].rotation-90,
 					this.gunseat[s].x,this.gunseat[s].y);
@@ -342,6 +347,10 @@ cc.Class({
 
 				this.gunseat[s].active = true;	//console.log('---添加一个玩家的炮台' );
 
+				// var s = JSON.stringify(this._gunstyle.data);
+				// this.log.string='-------1------------\n';
+				// this.log.string+= s+'\n';
+			
 				global.ui.emit('addplayer',{seat:seat,name:user.nickname,gold:user.score,diamond:user.diamond,
 					lv_curr: this._gunstyle.data[level-1].cost,lv_max:this._gunstyle.data[user.bullet_level-1].cost});
 			}
@@ -417,9 +426,10 @@ cc.Class({
 	Touch(event){		
 		//console.log('-----------touch'+ event.getLocationX()+'    '+event.getLocationY());	
 		//if(this.v_guns[global.myseat-1]==null) return;	
-		if(this.v_readylock) return;
 		
-		if(global.myinfo.score < global.mygunlv) {
+		if(this._readylock) return;
+		
+		if(global.myinfo.score <   this._gunstyle.data[global.mygunlv-1].cost) {
 			//console.log('-----------  4'+  typeof(global.myinfo.score) +'  '+ typeof(global.mygunlv));	
 			return;
 		}
@@ -429,16 +439,18 @@ cc.Class({
 		//console.log('----------- m pos ='+ v2 );		
 
 		this.v_guns[global.myseat-1].emit( 'fire' ,{ x:v2.x,y:v2.y }  );
-					
+		
 		//this.testgun.emit( 'otherfire' ,{ x:v2.x,y:v2.y }  );//{ x:event.getLocationX(),y:event.getLocationY() } );      	
 	},
 	
 	TouchEnd(event){
-		if(!this.v_guns[global.myseat-1]) return;
 		
-		if(this.v_readylock) return;
+		if(!cc.isValid(this.v_guns[global.myseat-1])) return;
 		
-		this.v_guns[global.myseat-1].emit( 'stopfire' );
+		
+		if(this._readylock) return;
+		
+		this.v_guns[global.myseat-1].emit( 'stopfire' );		
 	},
 	
 	InitNodePool:function(){
@@ -483,6 +495,7 @@ cc.Class({
 		for(let i=0;i<fishs.length;i++)
 		{
 			let f =fishs[i];
+			
 			dis = cc.pDistance(netv,cc.v2(f.x,f.y )) ;
 			
 			//最小鱼网半径 55，每级加 7
@@ -490,6 +503,7 @@ cc.Class({
 			//console.log('------'+dis+'  '+f.x+' '+f.y+'   '+ netv.x+'   '+netv.y);
 			if(dis <70 )
 			{
+				//f.emit('test',{x:netv.x,y:netv.y});
 				catchfish.push(f.name);				
 
 				//本地模拟
@@ -595,7 +609,7 @@ cc.Class({
 		//for(let d of data){
 		for(let i=0;i<data.length;i++){
 			let d = data[i];
-			if(d.type <0  || d.type >17 ){
+			if(d.type <0  || d.type >23 ){
 				console.log('--SyncFish   类型错误--'+ d.type);
 				
 				continue;
@@ -640,6 +654,15 @@ cc.Class({
 		// 		//console.log('  ---鱼的位置 '+ event.detail.x*(this.node.width/2) +'   '+event.detail.y*(this.node.height/2));
 		// 	}
 	//},
+
+
+	CoinFinish:function(target,data){
+		global.ac.emit('getcoin');
+		global.pool_coin.f_PutNode(data.coin);
+		data.text.destroy();
+		//console.log('   加 '+ data.score+' 金币');
+	},    
+
 	//捕到
 	GetFish:function(data){
 		//console.log(data);
@@ -668,7 +691,7 @@ cc.Class({
 					
 				//播放金币声音
 				var that = this;
-				cc.audioEngine.setFinishCallback(cc.audioEngine.play(this.v_sound[0], false, 1), function () {   cc.audioEngine.play(that.v_sound[1], false, 0.7) });
+				global.ac.emit('popcoin');				
 				
 				//console.log('  ---金币产生点='+ f[i].getPosition());
 				
@@ -688,7 +711,7 @@ cc.Class({
 					ct.runAction( cc.spawn (cc.moveBy(1.5, 0,50),cc.fadeOut (1.5)) );
 					
 					var that  = this;
-					var len = cc.pDistance(v2,that.gunseat[seat-1].getPosition())/400;
+					var len = cc.pDistance(v2,that.gunseat[seat-1].getPosition())/600;
 					//生成金币		及数量
 					var coins =1;
 					if(data[2]>=10) coins =10;
@@ -711,25 +734,45 @@ cc.Class({
 						continue;
 					}
 					if(data[0] == global.myid)
-						this.AC.emit('dead',{type:f[i].fishtype});
-					//奖金特效
-					if(f[i].fishtype &&  f[i].fishtype >=12 ){
-						
-						//console.log('-奖金 鱼类型 '+ f[i].fishtype);
-						if(f[i].fishtype > 14){
-							if(s== global.myseat)
-								this.BossReward(data[2]);
-						}else{
-							this.Reward(seat,f[i].fishtype,data[2]);
-						}
+						global.ac.emit('dead',{type:f[i].fishtype});					
+
+
+					if((data[4]-0)>0){
+							var jj = cc.instantiate(this.prefab[Ptype.PROP-0]);						
+							jj.parent = cc.Canvas.instance.node;
+							jj.setPosition(v2.x+10,v2.y+30);						
+							jj.emit('pop',{type:1,num:data[4]-0,x:this.gunseat[seat-1].x,y:this.gunseat[seat-1].y});
+					}
+
+					//爆炸闪光特效
+					if(f[i].fishtype ){
+						if(f[i].fishtype >12 ){	
 						//大鱼死亡爆炸效果
 						var e = cc.instantiate(this.prefab[Ptype.BIGFISHDEAD-0]);
 						e.parent =this.node;	
 						e.setPosition(f[i].getPosition());
-					} 
-					//if( f[i].)
+						}	
+						//奖金特效
+						if(f[i].fishtype >17 ){						
 
-					global.ui.emit('setplayer',{seat:seat,gold:data[3]});
+							//console.log('-奖金 鱼类型 '+ f[i].fishtype);
+							if(f[i].fishtype == 24){
+								if(s== global.myseat)
+									this.BossReward(data[2]);
+							}else{
+								this.Reward(seat,f[i].fishtype,data[2]);
+							}						
+						} 
+
+						// if( Math.random()>0.6){
+						// 	var jj = cc.instantiate(this.prefab[Ptype.PROP-0]);						
+						// 	jj.parent = cc.Canvas.instance.node;
+						// 	jj.setPosition(v2.x+10,v2.y+30);			
+							
+						// 	jj.emit('pop',{type:1,num:2,x:this.gunseat[seat-1].x,y:this.gunseat[seat-1].y});
+						// }
+					}
+					global.ui.emit('setplayer',{seat:seat,gold:data[3]});			
 				}	
 				
 				//消除该鱼				
@@ -739,75 +782,27 @@ cc.Class({
 			for(let i=0;i<delfish.length;i++)
 				delfish[i].emit('dead');
 	},
-	// GetFish:function(event){
-	// 	let msg = event.detail;
-	// 	let f = this.fishlayer.children
-	// 	for(let i =0;i<f.length;i++)
-	// 		if(f[i].name == 'fish'+msg.id){		
-	// 			//消除该鱼				
-	// 			f[i].emit('dead');		
 
-	// 			//this.Lightning();		
-					
-	// 			//播放金币声音
-	// 			var that = this;
-	// 			cc.audioEngine.setFinishCallback(cc.audioEngine.play(this.v_sound[0], false, 1), function () {   cc.audioEngine.play(that.v_sound[1], false, 0.7) });
-				
-	// 			//console.log('  ---金币产生点='+ f[i].getPosition());
-				
-	// 			var v2 = f[i].getPosition()	;
-	// 			if(this.node.rotation ==180){
-	// 				v2.x = -v2.x;
-	// 				v2.y = -v2.y;
-	// 			}
-				
-	// 			//生成金币文字
-	// 			var ct = cc.instantiate(this.prefab[4]);
-	// 			ct.getComponent("cc.Label").string = msg.coin.toString();
-	// 			ct.parent = cc.Canvas.instance.node;
-	// 			ct.setPosition(v2.x+10,v2.y+30);				
-	// 			ct.runAction( cc.spawn (cc.moveTo(1, v2.x+10,v2.y+30+20),cc.fadeOut (1)) );
-				
-	// 			//生成金币		
-	// 			for(let j=0;j<msg.coin/10;j++){							
-	// 				var coin = global.pool_coin.f_GetNode(this.node,v2.x+j*20,v2.y);					
-					
-	// 				var finished = cc.callFunc(this.CoinFinish, this, {coin:coin,text:ct});
-	// 				//根据坐位确定金币去向
-	// 				//if(msg.seat ==1)
-	// 				var act = cc.sequence(cc.moveTo(1, -200, - this.node.height/2),finished);
-	// 				coin.emit('GetCoin',{action:act});	
-	// 			}			
-	// 		}
-	// },
 	//----------------------------------------
 	LockFish:function(event){   //fish   seat
-		if(!this.v_readylock) return;
-		console.log(' ------开始锁定------');
+		if(!this._readylock) return;
+		console.log(' ------已锁定一条鱼------');
 		this.v_guns[global.myseat-1].emit('lockfish',{fish:event.detail.fish});
 	},
 	CancelLock:function(){  //seat
 		console.log(' ------取消锁定------');//被锁定的鱼被打死
 		this.v_guns[global.myseat-1].emit('cancellock');
-		//this.v_readylock = true;
+		//this._readylock = true;
 	},
 	
 	UnLockFish:function(){   //seat
-		console.log(' ------解除锁定------');
+		console.log(' ------锁定时间结束------');
 		this.v_guns[global.myseat-1].emit('unlockfish');
-		this.v_readylock = false;
+		this._readylock = false;
 
 		var effect = this.gunseat[global.myseat-1].getChildByName("effect2");
 		if(effect!=null)	effect.active = false;
 	},
-	
-	CoinFinish:function(target,data){
-	
-		global.pool_coin.f_PutNode(data.coin);
-		data.text.destroy();
-		//console.log('   加 '+ data.score+' 金币');
-	},    	
-  
     //------------
     KillFish:function(seat,fishs){
         
@@ -822,10 +817,10 @@ cc.Class({
     },
 	//使用道具
 	UseProp:function(data){
-		//console.log(data);
+		console.log(data);
 		var seat = this.GetPlayerSeat(data[0]);
 		if(seat<1 || seat >4){
-		console.log('坐号错误 '+'  UseProp  '+ seat+'  '+ data[0]);
+			console.log('坐号错误 '+'  UseProp  '+ seat+'  '+ data[0]);
 			return;
 		} 
 		var num = data[1];
@@ -840,6 +835,7 @@ cc.Class({
 			//
 			//for(var f of this.fishlayer.children)
 			global.ui.emit('freeze',{seat:seat,num:num,type:type});
+			global.ac.emit('freeze');
 			for(let i=0;i<this.fishlayer.children.length;i++)
 				this.fishlayer.children[i].emit('freeze');//f.emit('freeze');
 			break;
@@ -875,9 +871,10 @@ cc.Class({
 		
 		//给对应炮发消息，改变类型
 		//console.log(this._gunstyle);
-		var style = lv;
-		if(this._gunstyle.data[lv-1].style>0)
-			style = this._gunstyle.data[lv-1].style;
+		//7-30炮样式以房间类型和VIP等级决定
+		var style = this._gunstyle_fixed;
+		//if(this._gunstyle.data[lv-1].style>0)
+		//	style = this._gunstyle.data[lv-1].style;
 		//console.log('-----------'+style);
 
 		this.v_guns[seat-1].emit('changetype',{type:style});	
@@ -906,9 +903,9 @@ cc.Class({
 
 	//BOSS 警告
 	BossWarning:function(){
-		var n =this.node.getChildByName('bosswarning');
-		cc.audioEngine.play(this.v_sound[Audiotype.WARNING], false, 0.7);
+		var n =this.node.getChildByName('bosswarning');		
 		n.active = true;
+		global.ac.emit('warning');		
 
 		var act = cc.repeat ( cc.sequence( cc.fadeTo(0.8, 125), 
                                            cc.fadeTo(0.8, 255)   ),3); 
@@ -924,9 +921,12 @@ cc.Class({
 		//this.v_server.getComponent('Server')._pause= true;
 		//让鱼隐藏
 		if(this.fishlayer.childrenCount< 1) return;
+	
 
-		for(let i=0;i<this.fishlayer.children.length;i++)
+		for(let i=0;i<this.fishlayer.children.length;i++){
+			
 				this.fishlayer.children[i].emit('hide');
+		}
 		// for(let fish of this.fishlayer.children){
 		// 	fish.emit('hide');
 		// }
@@ -959,6 +959,7 @@ cc.Class({
 		}
 
 		n.emit('show',{id:id,num:num});
+		global.ac.emit('reward');
 	},
 
 	//boss 奖
@@ -975,7 +976,9 @@ cc.Class({
 		label.string = gold;		
 		label.scheduleOnce(function() {
     		 this.node.parent.destroy();
- 		}, 3);
+		 }, 3);
+			
+		 global.ac.emit('bossdie');
 		
 	},
 
@@ -985,7 +988,7 @@ cc.Class({
 
 		if(this.fishlayer.childrenCount<2) return;
 		//闪电音效
-		cc.audioEngine.play(this.v_sound[Audiotype.LIGHTNING], false, 0.7);
+		global.ac.emit('lighting');		
 
 		var sp = this.fishlayer.children[0].getPosition();
 		var ep = sp; 
@@ -1044,6 +1047,37 @@ cc.Class({
 		console.log('============================='+data.method);
 	},
 
+	GetPropCost:function(roomtype){
+		var cost =1;
+		switch(roomtype){
+			case 'qingtong':
+			cost =100;
+			break;
+			case 'baiyin':
+			cost=1000;
+			break;
+			case 'huangjin':
+			cost =10000;
+			break;
+		}
+		return cost;
+	},
+
+	GetGunStyle:function(roomtype){
+		var type =1;
+		switch(roomtype){
+			case 'qingtong':
+			type =1;
+			break;
+			case 'baiyin':
+			type=2;
+			break;
+			case 'huangjin':
+			type =3;
+			break;
+		}
+		return type;
+	},
 	//跟据id变换为坐号
 	GetPlayerSeat:function(id){
 		var seat =0;

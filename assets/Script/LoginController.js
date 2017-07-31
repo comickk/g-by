@@ -74,6 +74,10 @@ cc.Class({
             this._lastpass = cc.sys.localStorage.getItem('userpass');
         }       
         //this.ebLoginId.string= FishMath.UUID();     
+
+             global.volume =0.5;//音效音量
+            global.musicid = 0;//背景乐ID
+            global.musicvol =0.5;//背景乐音量
     },
 
     //消息处理
@@ -119,8 +123,7 @@ cc.Class({
     btn_nicklogin:function(){
        
      //   global.anysdk.payForProduct();
-      this.win_login.active = true;
-        
+      this.win_login.active = true;     
     },
 
     //创建账号
@@ -350,7 +353,8 @@ cc.Class({
     CloseSocket:function(){		
 		//this.win_tip.active = true;
 		//this.win_tip.emit('settip',{type:2,msg:'与服务器的联接已断开,请重新登录',scene:'login'});
-	},
+    },  
+    
 
 });
 /*

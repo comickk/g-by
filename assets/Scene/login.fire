@@ -699,7 +699,9 @@
       "__id__": 185
     },
     "_lastnick": "",
-    "_lastpass": ""
+    "_lastpass": "",
+    "_loginnick": "",
+    "_loginpass": ""
   },
   {
     "__type__": "cc.Node",

@@ -13,11 +13,13 @@ cc.Class({
 		seattip:cc.Node,
 
 		popwinbg:cc.Node,
-		win_unlockgun:cc.Node,
+		//win_unlockgun:cc.Node,
 		win_tip:cc.Node,
 		win_shop:cc.Node,
 		win_chat:cc.Node,
-
+		win_vipgun:cc.Node,
+		win_fishtype:cc.Node,
+		win_setting:cc.Node,
 
 		tipmenu:cc.Node,
 		tipunlockgun:cc.Node,
@@ -38,9 +40,9 @@ cc.Class({
 		this.node.on('addplayer',this.f_AddPlayer,this);
 		this.node.on('delplayer',this.f_DelPlayer,this);
 		this.node.on('setplayer',this.SetPlayer,this);
-		this.node.on('settools',function(){
-			this.btn[5].getChildByName('num').getComponent(cc.Label).string= global.myinfo.tool_2;
-			this.btn[6].getChildByName('num').getComponent(cc.Label).string= global.myinfo.tool_1;
+		this.node.on('settools',function(event){
+			this.btn[5].getChildByName('num').getComponent(cc.Label).string= event.detail.lock;//global.myinfo.tool_2;
+			this.btn[6].getChildByName('num').getComponent(cc.Label).string= event.detail.ice; //global.myinfo.tool_1;
 
 		},this);
 
@@ -80,20 +82,51 @@ cc.Class({
 
 		this.node.on('freeze',function(event){
 				
-				var ice = global.game.getChildByName("ice");
-				ice.active = true;
-				ice.opacity= 100;
-				ice.runAction(cc.fadeTo(1,255));
+			var ice = global.game.getChildByName("ice");
+			ice.active = true;
+			ice.opacity= 100;
+			ice.runAction(cc.fadeTo(1,255));
 
-				if(event.detail.seat-0 == global.myseat){
-					this.btn[6].getChildByName('num').getComponent(cc.Label).string= event.detail.num;				
-					//this.btn[6].getComponent(cc.Button).interactable = false;
+			var seat = event.detail.seat-0;
+			if(seat == global.myseat){
+				//this.btn[6].getChildByName('num').getComponent(cc.Label).string= event.detail.num;				
+				//this.btn[6].getComponent(cc.Button).interactable = false;
+				//冰冻进入CD
+				this.btn[6].getComponent(cc.Button).interactable= false;
+				var mask = this.btn[6].getChildByName("btn_mask");
+				mask.active = true;
+				var sp = mask.getComponent(cc.Sprite);
+				sp.fillRange =1;
+
+				var that = this;
+				var spcallback = function () {
+					if(sp.fillRange <=0){     			
+						sp.unschedule(spcallback);        
+						that.btn[6].getComponent(cc.Button).interactable= true;
+						sp.node.active = false;
+					}
+					else{
+						sp.fillRange -= 1/(9/0.1);
+					}
 				}
-				// var that = this;
-				 this.scheduleOnce(function() { 
-				 	ice.active = false; 
-				// 	that.btn[6].getComponent(cc.Button).interactable = true;
-				 }, 10);
+				sp.schedule(  spcallback , 0.1);
+			}			
+			
+
+			if(global.myseat>2)
+			if(seat > 2) seat -= 2;
+			else seat += 2;
+			
+			this.playerInfo[seat-1].emit('changegold',{gold:event.detail.num});
+
+			if(cc.isValid(this.playerInfo[seat-1]))
+				this.playerInfo[seat-1].emit('freeze');
+
+			// var that = this;
+				this.scheduleOnce(function() { 
+				ice.active = false; 
+			// 	that.btn[6].getComponent(cc.Button).interactable = true;
+				}, 9);
 		},this);
 
 		this.node.on('chat',function(event){
@@ -109,7 +142,13 @@ cc.Class({
 			
 		},this);
 
-	
+		this.node.on('fishtype',function(){
+			this.win_fishtype.active = true;
+		},this);
+		this.node.on('setting',function(){
+			this.win_setting.active = true;
+		},this);
+
 		this.popwinbg.on('touchend',function(){event.stopPropagation();}); 
     },
 
@@ -208,7 +247,7 @@ cc.Class({
 	f_Btn_Add:function(){
 		//向服务器发
 		// console.log(global.mygunlv);
-		if(global.mygunlv >= global.myinfo.bullet_level)return ;
+		//if(global.mygunlv >= global.myinfo.bullet_level)return ;
 		//console.log( global.myinfo.bullet_level);
 		var p = {
 				version: 102,
@@ -229,15 +268,26 @@ cc.Class({
 		// this.playerInfo[seat].emit('setgunlevel',{level:this.guntype*10});
 		// global.game.emit('setgun',{seat:global.myseat,type:this.guntype});
 	},
-	
+	Btn_ChangeGun:function(event,customEventData){
+		var p = {
+				version: 102,
+				method: 5013,				
+				seqId: Math.random() * 1000,
+				timestamp: new Date().getTime(),
+				data:global.mygunlv + (customEventData-0),
+			};
+		global.socket.ws.send(JSON.stringify(p));	
+	},
+
 	f_Btn_Sub:function(){
 		//向服务器发
 		// console.log(global.mygunlv);
 		var lv =global.mygunlv-1;
-		if(global.mygunlv ==1 &&  global.myinfo.bullet_level > 1)			
-			lv = global.myinfo.bullet_level;
-		else
-			return;		
+		// if(global.mygunlv ==1 )
+		// 	if( global.myinfo.bullet_level > 1)			
+		// 		lv = global.myinfo.bullet_level;
+		// 	else
+		// 		return;		
 		
 		var p = {
 				version: 102,
@@ -267,7 +317,7 @@ cc.Class({
 		// 	data:1,
 		// };
 		// global.socket.ws.send(JSON.stringify(p));	
-		if(global.myinfo.tool_2 < 1 ) return;
+		//if(global.myinfo.tool_2 < 1 ) return;
 
 		global.game.emit('lockstart');
 		//锁定开关计时 进入CD
@@ -311,24 +361,28 @@ cc.Class({
 		global.socket.ws.send(JSON.stringify(p));	
 
 		//冰冻进入CD
-		this.btn[6].getComponent(cc.Button).interactable= false;
-		var mask = this.btn[6].getChildByName("btn_mask");
-		mask.active = true;
-		var sp = mask.getComponent(cc.Sprite);
-		sp.fillRange =1;
+		// this.btn[6].getComponent(cc.Button).interactable= false;
+		// var mask = this.btn[6].getChildByName("btn_mask");
+		// mask.active = true;
+		// var sp = mask.getComponent(cc.Sprite);
+		// sp.fillRange =1;
 
-		var that = this;
-		var spcallback = function () {
-     		if(sp.fillRange <=0){     			
-				sp.unschedule(spcallback);        
-				that.btn[6].getComponent(cc.Button).interactable= true;
-				sp.node.active = false;
-        	}
-        	else{
-        		sp.fillRange -= 1/(10/0.1);
-        	}
- 		}
- 		sp.schedule(  spcallback , 0.1);
+		// var that = this;
+		// var spcallback = function () {
+     	// 	if(sp.fillRange <=0){     			
+		// 		sp.unschedule(spcallback);        
+		// 		that.btn[6].getComponent(cc.Button).interactable= true;
+		// 		sp.node.active = false;
+        // 	}
+        // 	else{
+        // 		sp.fillRange -= 1/(9/0.1);
+        // 	}
+ 		// }
+		//  sp.schedule(  spcallback , 0.1);
+
+
+		 
+
 		// this.btn[6].getComponent(cc.Button).interactable = false;
 		// var ice = global.game.getChildByName("ice");
 		// ice.active = true;
@@ -358,7 +412,8 @@ cc.Class({
 	},	
 
 	Btn_UpGun:function(){
-		this.win_unlockgun.active = true;
+		//this.win_unlockgun.active = true;
+		this.win_vipgun.active = true;
 	},
 
 	 WinTip:function(){

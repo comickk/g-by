@@ -16,9 +16,9 @@ cc.Class({
         this.node.on('show',function(event){
 
             this.num.string = event.detail.num;
-            this.fishid =event.detail.id;
+            this.fishid = event.detail.id -18;
 
-            this.fishname.spriteFrame  = this.fishspf[this.fishid-1];
+            this.fishname.spriteFrame  = this.fishspf[this.fishid];
 
             this.bg.runAction(cc.sequence (cc.rotateBy(4.8,360*9.6),
                 cc.callFunc(function() {

@@ -1,0 +1,55 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "gun5",
+  "_objFlags": 0,
+  "_rawFiles": null,
+  "_duration": 0.26666666666666666,
+  "sample": 60,
+  "speed": 1,
+  "wrapMode": 1,
+  "curveData": {
+    "comps": {
+      "cc.Sprite": {
+        "spriteFrame": [
+          {
+            "frame": 0,
+            "value": {
+              "__uuid__": "8184bb67-95b1-46a9-91cd-ea343ff2f964"
+            }
+          },
+          {
+            "frame": 0.05,
+            "value": {
+              "__uuid__": "6dc415bd-3eb0-4988-bd36-47db13502a74"
+            }
+          },
+          {
+            "frame": 0.1,
+            "value": {
+              "__uuid__": "26a471e1-2966-482a-8090-99bf309260f7"
+            }
+          },
+          {
+            "frame": 0.15,
+            "value": {
+              "__uuid__": "47eb0157-d9aa-4156-9dec-77a2d4f2a36f"
+            }
+          },
+          {
+            "frame": 0.2,
+            "value": {
+              "__uuid__": "4832a8aa-3741-4ce6-9f0a-9292272e24b5"
+            }
+          },
+          {
+            "frame": 0.25,
+            "value": {
+              "__uuid__": "8184bb67-95b1-46a9-91cd-ea343ff2f964"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "events": []
+}
