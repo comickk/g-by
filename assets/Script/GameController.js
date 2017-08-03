@@ -750,7 +750,10 @@ cc.Class({
 					if(data[2]>=100) coins =100;
 					if(data[2]>=1000) coins =1000;
 					if(data[2]>=10000) coins =10000;
-					for(let j=0;j<data[2]/coins;j++){							
+					//if(data[2]>=100000) coins =100000;
+					var maxcoins= (data[2]/coins > 30)?30:data[2]/coins;
+					
+					for(let j=0;j< maxcoins;j++){							
 						var coin = global.pool_coin.f_GetNode(this.node,v2.x+j*20,v2.y);					
 						
 						var finished = cc.callFunc(this.CoinFinish, this, {coin:coin,text:ct});
@@ -785,7 +788,7 @@ cc.Class({
 						e.setPosition(f[i].getPosition());
 						}	
 						//奖金特效
-						if(f[i].fishtype >17 ){						
+						if(f[i].fishtype >16 ){						
 
 							//console.log('-奖金 鱼类型 '+ f[i].fishtype);
 							if(f[i].fishtype == 24){
@@ -1143,7 +1146,19 @@ cc.Class({
 
 	FishBroad:function(data){
 		// 0 userid    1 fish id     2 fish money   3 doc[1]  4 fishgift      5       6位是鱼类型 第7位是用户昵称 
-		cc.log(data);
+		//cc.log(data);
+		var fishname = data[6];
+		if(fishname-0 > 19){
+			switch(fishname-0){				
+				case 20: fishname = '黄金蟾蜍';	break;	
+				case 21: fishname = '黄金水母';	break;	
+				case 22: fishname = '黄金玳瑁';	break;	
+				case 23: fishname = '黄金龙';	break;	
+			}
+		}
+
+		var msg = data[7]+'刚刚打死了一条'+fishname+'获得了'+data[2]+'金币';
+		global.broad.emit('settext',{text:msg});
 	},
 	
 	//跟据id变换为坐号

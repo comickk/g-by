@@ -157,21 +157,19 @@ cc.Class({
 		var dy = -Math.sin(hu)*len;
 		var dx = Math.cos(hu)*len;		
 
-		// var r = dr%180;
-		// if( r>0){
-		// 	if(r>90){
-		// 		dx
-		// 	}else{
-
-		// 	}
-		// }else{
-		// 	if(r < -90){
-
-		// 	}else{
-
-		// 	}
-		// }
-
+		//conslole.log('r ='+ dr +' x= '+' y= '+dy);
+		/**
+		var len = 100;
+		for(var r = 0;r<360;r+=10){
+		var hu_r = (Math.PI/180)*(r+40);
+		var hu_l = (Math.PI/180)*(r-40);
+		var ry = Math.sin(hu_r)*len;
+		var rx = Math.cos(hu_r)*len;	
+		var ly = Math.sin(hu_l)*len;
+		var lx = Math.cos(hu_l)*len;	
+		console.log('r ='+ r +'向右40度 x= '+rx+' y= '+ry +'向左40度 x= '+ lx+' y= '+ly);}
+		 * 
+		 */
 		var anim = this.body.getComponent(cc.Animation);
 		var clip = 	  anim.getClips()[0];
 		if(cc.isValid(clip)){

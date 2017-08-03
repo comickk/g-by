@@ -31,6 +31,7 @@ cc.Class({
         _loginnick:'',
         _loginpass:'',
 
+        testlabel:cc.Label,
       //  testfish:cc.Node,
     },
 
@@ -382,7 +383,13 @@ cc.Class({
     //
     test:function(){
         this.testfish.emit('hide');
-    }
+    },
+    Btn_TestLog:function(){
+        this.testlabel.string= global.anysdk.log;
+    },
+    Btn_TestPay:function(){
+        global.anysdk.payForProduct();
+    },
     
 
 });

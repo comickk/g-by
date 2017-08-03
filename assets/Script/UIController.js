@@ -459,6 +459,8 @@ cc.Class({
 				sp.unschedule(spcallback);        
 				that.btn[type].getComponent(cc.Button).interactable= true;
 				sp.node.active = false;
+
+				if(type == 5) global.game.emit('lockend');
 			}
 			else{
 				sp.fillRange -= 1/(9/0.1);

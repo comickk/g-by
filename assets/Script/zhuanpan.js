@@ -16,7 +16,7 @@ cc.Class({
         this.node.on('show',function(event){
 
             this.num.string = event.detail.num;
-            this.fishid = event.detail.id -18;
+            this.fishid = event.detail.id -17;
 
             this.fishname.spriteFrame  = this.fishspf[this.fishid];
 

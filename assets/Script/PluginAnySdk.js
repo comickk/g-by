@@ -3,22 +3,24 @@
 function PluginSdk(){}
 
 //PluginSdk.prototype.ws=null;
-
+PluginSdk.prototype.log='-----anysdk------\n';
 PluginSdk.prototype.Init = function () {   
 
     if (typeof anysdk === 'undefined' || !cc.sys.isMobile)
     {
         //this.msg.string = '-----------------no anysdk';
+        this.log +='-----------------no anysdk\n';
         console.log('-----------------no anysdk');
     }
     else
     {              
         //this.msg.string = '-----------------has anysdk';
             console.log('----------------has anysdk');
+            this.log +='-----------------has anysdk\n';
         
         this.iapPlugin = anysdk.agentManager.getIAPPlugin();
         if (this.iapPlugin) {
-            this.iapPlugin.setListener(this.onIAPResult, this);
+            this.iapPlugin.setListener(this.onPayResult, this);
         }
 
         this.userPlugin = anysdk.agentManager.getUserPlugin();
@@ -37,8 +39,10 @@ PluginSdk.prototype.payForProduct=function () {
     if (!this.iapPlugin) {
         console.log('no support anysdk');
         //this.msg.string = '--------no support anysdk';
+         this.log +='--------no support anysdk\n';
         return;
     }
+     this.log +='--------start anysdk pay \n';
     var info = {
         'Product_Id': '1',                    //商品唯一标示符
         'Product_Name': 'three hearts',            //商品名称

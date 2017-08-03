@@ -234,7 +234,7 @@
     "_scaleY": 1,
     "_position": {
       "__type__": "cc.Vec2",
-      "x": 29,
+      "x": 0,
       "y": 0
     },
     "_skewX": 0,
@@ -308,7 +308,9 @@
     "_isice": false,
     "_width": 0,
     "_height": 0,
-    "_ishide": false
+    "_ishide": false,
+    "_shuimu": 21,
+    "_lasttime": 0
   },
   {
     "__type__": "cc.BoxCollider",

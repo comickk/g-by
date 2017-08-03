@@ -41,8 +41,8 @@ cc.Class({
         this.btn_start.on('touchend',function(){
           
              if(this.isstart) return;
-                this.isstart = true;
-
+                this.isstart = true;               
+           
             //转盘旋转动作
              var act =  cc.rotateBy(8,360*12+45*(this._prizeid-1)).easing(cc.easeQuarticActionInOut());
             //弹出奖励品界面动作
@@ -62,21 +62,37 @@ cc.Class({
             }, this);
             
             var finished = cc.callFunc(function () {               
-                this.selectlight.active = true;     
-                cc.audioEngine.play(this.sound[1], false,global.volume);
+                this.selectlight.active = true;  
+               
+                //sound
+               // cc.audioEngine.play(this.sound[1], false,global.volume);
+                this.node.emit('rotaryendsound',this);
+
                 this._isend =true;
                 this.selectlight.runAction(cc.sequence(act1,finished1));              
             }, this);
 
              this._lastrot = this.rotary.rotation;
-              cc.audioEngine.play(this.sound[0], false,global.volume);    
+           
+             //sound
+            // cc.audioEngine.play(this.sound[0], false,global.volume);
+            this.node.emit('rotarysound',this);    
               
             this.rotary.runAction(  cc.sequence(act,finished)   );//开启转 盘       
             
-            this.node.emit('rotarysound',this);
+            //this.node.emit('rotarysound',this);
 
         },this);
 
+        this.node.on('rotarysound',function(){
+             //sound
+             cc.audioEngine.play(this.sound[0], false,0.8);   
+        },this);
+
+        this.node.on('rotaryendsound',function(){
+             //sound
+             cc.audioEngine.play(this.sound[1], false,0.8);   
+        },this);
         
 
         this.schedule(function() {  
@@ -90,7 +106,10 @@ cc.Class({
         if(!this.isstart) return;       
        
         if(this.rotary.rotation > (this._lastrot +360) ){
-            cc.audioEngine.play(this.sound[0], false,global.volume);     
+            //sound
+           // cc.audioEngine.play(this.sound[0], false,global.volume);  
+           this.node.emit('rotarysound',this);
+
             this._lastrot =this.rotary.rotation;
         }   
     },    

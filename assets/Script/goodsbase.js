@@ -8,7 +8,7 @@ cc.Class({
       goods_num:cc.Label,
       goods_cost:cc.Label,
       goods_icon:cc.Sprite,
-      goods_spf:[cc.SpriteFrame],      
+      goods_spf:cc.SpriteFrame,      
     },
 
     // use this for initialization

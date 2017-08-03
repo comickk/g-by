@@ -70,7 +70,7 @@ cc.Class({
                 timestamp: new Date().getTime(),                     
             };
             global.socket.ws.send(JSON.stringify(p));	
-         }, 10);
+         }, 10);      
     },
 
     start:function(){
@@ -84,8 +84,8 @@ cc.Class({
             this.viplevel.string = 'VIP '+global.myinfo.vip +' 级';   
         
         //-------转盘测试------------
-       //  this.win_rotary.active = true;//每日登录奖励转盘 
-       //  this.win_rotary.emit('setprize',{  id: 6,   num:1000});
+       // this.win_rotary.active = true;//每日登录奖励转盘 
+       // this.win_rotary.emit('setprize',{  id: 6,   num:1000});
          //-----------------
        
          // cc.log(global.myinfo);
@@ -105,8 +105,8 @@ cc.Class({
         
          switch(msg.method){
              case 1008://服务器公告
-			//cc.log(msg.data);
-			if(cc.isValid(global.broad))
+			cc.log(msg.data);
+            if(cc.isValid(global.broad))               
                 global.broad.emit('settext',{text:msg.data});            
             break;
             
@@ -333,6 +333,9 @@ cc.Class({
 		this.win_tip.emit('settip',{type:2,msg:'与服务器的联接已断开,请重新登录',scene:'login'});
 	},
   
+    Btn_PayTest:function(){
+        global.anksdk.payForProduct();
+    },
 
     // called every frame, uncomment this function to activate update callback
     // update: function (dt) {
