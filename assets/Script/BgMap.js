@@ -36,7 +36,7 @@ cc.Class({
         var that = this;
         this.scheduleOnce(function(){
             that.tip.active =false;
-        },3);
+        },5);
 
 
         global.ac.emit('switchbg');

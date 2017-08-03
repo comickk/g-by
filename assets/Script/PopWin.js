@@ -9,6 +9,7 @@ var PopWin = cc.Class({
         //     default:true,      
         //     visible:false
         // }
+        _hidetype:0,//0 隐藏遮罩层  1 不隐藏遮罩层
     },
 
    
@@ -22,18 +23,30 @@ var PopWin = cc.Class({
        // this.node.on('touchend',function(){event.stopPropagation();});   
     },    
 
-    Hide:function(){
-  
+    Hide:function( type ){
+        // var type = arguments[0] ? arguments[0] : 0;//是否 隐藏  背景层 ，用于后续弹出其它窗口
         //this.hidebg = true;
-
-        if(this.sound[1])
+       //this._hidetype = type;
+       if(cc.isValid(this.sound[1]))
             cc.audioEngine.play(this.sound[1]);
+
        this.node.runAction( cc.sequence(cc.scaleTo(0.15,0.3,0.3),
             cc.callFunc(function(){  this.node.active = false; },this )));
     },    
 
+    // Switch:function(win){
+    //     this._hidetype =1;
+    //    if(cc.isValid(this.sound[1]))
+    //         cc.audioEngine.play(this.sound[1]);
+
+    //    this.node.runAction( cc.sequence(cc.scaleTo(0.15,0.3,0.3),
+    //         cc.callFunc(function(){  this.node.active = false; 
+    //                                 if(cc.isValid(win)) win.active = true;            
+    //         },this )));
+    // },
+
     onEnable :function(){
-        if(this.BGlayer)
+        if( cc.isValid(this.BGlayer))
             this.BGlayer.active = true;
             //this.BGlayer.color  = cc.Color.GRAY;
 
@@ -42,11 +55,11 @@ var PopWin = cc.Class({
         if(this.sound[0])
             cc.audioEngine.play(this.sound[0]);
        this.node.runAction( cc.sequence(cc.scaleTo(0.12,1.1,1.1),cc.scaleTo(0.18,1,1)));
-
     },
+
     onDisable:function(){
 
-        if(this.BGlayer)
+        if(this._hidetype == 0 && cc.isValid(this.BGlayer) )
             this.BGlayer.active = false;
            // this.BGlayer.color  = cc.Color.WHITE;
 

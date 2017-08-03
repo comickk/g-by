@@ -10,7 +10,8 @@ cc.Class({
     },	   
 
     onEnable:function() {
-    		var rep = cc.repeat(cc.sequence( cc.scaleTo(0.1,1.2,1.2) ,cc.scaleTo(0.1,1,1)),2);
+			var rep = cc.repeat(cc.sequence( cc.scaleTo(0.1,1,1) ,
+											 cc.scaleTo(0.1,0.8,0.8)	),	2);
            	this.node.runAction(rep); 
     },
 	

@@ -23,16 +23,22 @@ cc.Class({
 
         logintip:cc.Node,
 
+        BGM:cc.Node,
+
         _lastnick:'',
         _lastpass:'',       
 
         _loginnick:'',
         _loginpass:'',
+
+      //  testfish:cc.Node,
     },
 
     // use this for initialization
     onLoad: function () {      
          this.popwinlayer.on('touchend',function(){event.stopPropagation();});  
+
+          cc.game.addPersistRootNode(this.BGM);
 
          this.node.on('getauthcode',this.GetAuthCode,this);
          this.node.on('setlastnick',function(event){
@@ -54,8 +60,8 @@ cc.Class({
             this.Send(event.detail.arg);
             this._loginnick = event.detail.nick;
             this._loginpass = event.detail.pass;
-             this.popwinlayer.active = true;
-            this.logintip.active = true;
+
+            this.Loading();            
         },this);
 
          //初始化 anysdk
@@ -74,6 +80,7 @@ cc.Class({
             this._lastpass = cc.sys.localStorage.getItem('userpass');
         }       
         //this.ebLoginId.string= FishMath.UUID();     
+       
 
              global.volume =0.5;//音效音量
             global.musicid = 0;//背景乐ID
@@ -87,13 +94,18 @@ cc.Class({
         // console.log(msg);
         switch(msg.method){
             case 1:                 
-                global.myinfo = msg.data;//global.socket.MsgToObj(msg.data);                
-               // global.myinfo = info;    
-                global.myid = global.myinfo.id;//JSON.parse( info.extend_data)['id'];    
-              // console.log(global.myinfo);
-                cc.director.preloadScene('hall', function () {
-                    cc.director.loadScene('hall');
-                });               
+                global.myinfo = msg.data;//global.socket.MsgToObj(msg.data);  
+                if(cc.isValid(global.myinfo)){              
+                // global.myinfo = info;    
+                //cc.log(global.myinfo);
+                    global.myid = global.myinfo.id;//JSON.parse( info.extend_data)['id'];    
+                
+                    cc.director.preloadScene('hall', function () {
+                        cc.director.loadScene('hall');
+                    });     
+                }  else{
+                    this.win_tip.emit('settip',{type:2,msg:'登录异常'});
+                }        
             break;
        
           default:           
@@ -225,8 +237,7 @@ cc.Class({
         //    });
 
             //显示正在登录提示条
-            this.popwinlayer.active = true;
-            this.logintip.active = true;
+            this.Loading();
         }
       //  this.logintip.string = '正在登录';
     },
@@ -316,7 +327,11 @@ cc.Class({
                 if(cc.isValid(s.error)){
                     self.win_tip.active = true;
                     self.win_tip.emit('settip',{type:2,msg:'账号或密码错误'});
-                   
+                    
+                     self.unscheduleAllCallbacks(); 
+                     self.popwinlayer.active = false;
+                     self.logintip.active = false;                    
+
                 //    switch(s.error.code){
                 //        case '101':
                 //        break;
@@ -329,15 +344,14 @@ cc.Class({
                             //  nick:self._lastnick,
                             // pass:self._lastpass});
 
-                    self.popwinlayer.active = true;
-                    self.logintip.active = true;
+                        self.Loading();
                     // }else{
                     //     console.log('无法登录');
                     // }
                 }
             }
         };
-       
+       // var url ='http://'+global.socket.URL +'/client/user/login?';
         xhr.open("POST", url+arg, true);
         xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded;");
         xhr.send(arg);
@@ -354,6 +368,21 @@ cc.Class({
 		//this.win_tip.active = true;
 		//this.win_tip.emit('settip',{type:2,msg:'与服务器的联接已断开,请重新登录',scene:'login'});
     },  
+
+    Loading:function(){
+         this.popwinlayer.active = true;
+         this.logintip.active = true;
+
+        this.scheduleOnce(function(){
+            this.popwinlayer.active = false;
+            this.logintip.active = false;
+         },5);
+    },
+
+    //
+    test:function(){
+        this.testfish.emit('hide');
+    }
     
 
 });

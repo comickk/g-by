@@ -12,6 +12,9 @@ cc.Class({
        btn_set:cc.Node,
        btn_back:cc.Node,
 
+       paytip:cc.Node,
+       paytip_lab:cc.Node,
+
        sx:{
             default:0,      
             visible:false
@@ -38,8 +41,9 @@ cc.Class({
                 this.btn_poxedex.scaleX = -1;
                 this.btn_set.scaleX = -1;
                 this.btn_back.scaleX = -1;
+                this.paytip_lab.scaleX =-1;
                 this.sx = this.node.x = cc.Canvas.instance.node.width/2 + this.node.width/2;
-                this.tx = this.sx - this.node.width;
+                this.tx = this.sx - this.node.width;                
             }else{
                 this.sx= this.node.x = -cc.Canvas.instance.node.width/2 - this.node.width/2;
                 this.tx = this.sx + this.node.width;               
@@ -79,6 +83,16 @@ cc.Class({
             //});
          global.ui.emit('exitgame');
         },this);
+
+        this.node.on('paytip',function(){
+            if(!this.out)
+                this.Btn_Pop();
+            
+            this.paytip.active = true;
+            this.paytip_lab.active = true;
+            this.paytip.runAction(cc.repeatForever(cc.sequence( cc.fadeOut(0.8),cc.fadeIn(0.8) )));
+
+        },this);
     },
 
     Btn_Pop:function(){
@@ -91,6 +105,13 @@ cc.Class({
         this.node.runAction( cc.sequence(cc.moveTo(0.3,x,0),cc.callFunc(function(){
             that.btn_pop.scaleX = -that.btn_pop.scaleX;
             that.out = !that.out;
+
+            if(that.paytip.active && !that.out){
+                that.paytip.stopAllActions();
+                that.paytip.active = false; 
+                that.paytip_lab.active = false;
+            }
+
         })));
     },
     // called every frame, uncomment this function to activate update callback

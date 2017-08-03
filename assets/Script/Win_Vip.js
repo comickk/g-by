@@ -5,7 +5,8 @@ cc.Class({
       view:cc.ScrollView,
       cont:cc.Node,
      // details:cc.Label,
-
+    
+        win_shop:cc.Node,
       _currvip:0,
 
      // _text:[],
@@ -56,6 +57,12 @@ cc.Class({
 
             this._currvip =0;   
         }     
+    },
+
+    //充值按钮
+    Btn_Pay:function(){
+        this.node.active = false;
+        this.win_shop.active = true;
     },
 
     Btn_content:function(event, customEventData){

@@ -67,6 +67,7 @@ cc.Class({
 		}, 		
 
 		_mousepos:cc.v2,
+		_bulletcost:1,
     },
 	
     // use this for initialization
@@ -93,10 +94,11 @@ cc.Class({
 		this.node.zIndex =10;
 		
 		//添加事件				
+		//this.node.on('initgun',this.InitGun,this);		
 		this.node.on('otherfire',this.f_OtherFire,this);
         this.node.on('fire',this.f_Fire,this);
 		this.node.on('stopfire',function(){ this._isfire = false;},this);
-		this.node.on('changetype',this.f_SetType,this);	
+		this.node.on('changetype',this.SetType,this);	
 		
 		this.node.on('lockfish',function(event){	
 						if(this.v_locktarget!=null){//改变锁定对象
@@ -128,15 +130,18 @@ cc.Class({
 		if(this._isfire && this._isready) this.f_AutoFire();
      },
 
-    f_InitGun:function(seat,type,parent,r,x,y){
+    //f_InitGun:function(seat,type,parent,r,x,y){
+	InitGun:function(seat,type,parent,r,x,y,cost){
     	//console.log('-----------Init Gun' );	
-    	 	
+		//var msg = event.detail;
+		
     	this.node.rotation = r;
     	this.node.setPosition(x,y);
     	this.node.parent = parent;
 		this.v_seat = seat;    	
 		
 		this.v_type = type;
+		this._bulletcost = cost;
 		//console.log('------'+level);
 		this.node.getComponent(cc.Sprite).spriteFrame = this.v_gunsprite[this.v_type-1];
     },
@@ -148,6 +153,8 @@ cc.Class({
 
 		//鼠标接触点
 		this._mousepos = cc.v2(event.detail.x,event.detail.y);
+		
+		//this._bulletcost = event.detail.detail.cost;
 		//console.log('----自己开火'+this._mousepos.x+'  '+this._mousepos.y);
 		
 		var r = FishMath.GetAngle(wx,wy,this._mousepos.x,this._mousepos.y);
@@ -162,6 +169,12 @@ cc.Class({
 	
 	f_AutoFire:function(){			
 	
+		if(this._bulletcost > global.myinfo.score){
+
+			global.ui.emit('Recharge');			
+			return;		
+		}
+
 		//有锁定的目标，自动攻击
 		if(this.v_locktarget != null){
 		
@@ -184,7 +197,7 @@ cc.Class({
 		if(this.v_type<4){
 			this.v_anim.play("gun"+this.v_type);  
 		}else{
-			this.v_anim.play('vipgun'+this.v_type-3);
+			this.v_anim.play("vipgun"+(this.v_type-3));
 		}
 		
 		global.ac.emit('fire');		
@@ -220,7 +233,7 @@ cc.Class({
 		var sp_bullet = global.pool_bullet.f_GetNode( this.node.parent, -(this.v_cw/2) +v2.x,-(this.v_ch/2)+v2.y ,this.node.rotation,
 													  this.v_bulletsprite[this.v_type-1]).getComponent("bullet");
 													  
-		sp_bullet.f_InitBullet(	this.v_type,this.v_seat,this.v_bulletspeed);	
+		sp_bullet.f_InitBullet(	this.v_type,this.v_seat,this.v_bulletspeed,true);	
 		sp_bullet.node.name = bid;
 
 		//cc.log("bullet Uuid: " + sp_bullet.uuid);
@@ -255,7 +268,11 @@ cc.Class({
 		var r = FishMath.GetAngle(wx,wy,mp.x,mp.y);
 		this.node.rotation = r;	
 		
-		this.v_anim.play("gun"+this.v_type);  		
+		if(this.v_type<4){
+			this.v_anim.play("gun"+this.v_type);  
+		}else{
+			this.v_anim.play("vipgun"+(this.v_type-3));
+		}		
 	
 		//计算炮弹的目标点
 		var tp = FishMath.GetFirePos(this.node.rotation,this.node.x,this.node.y,this.v_cw/2,this.v_ch/2);	
@@ -268,7 +285,7 @@ cc.Class({
 		
 		var sp_bullet = global.pool_bullet.f_GetNode( 	this.node.parent, -(this.v_cw/2) +v2.x,-(this.v_ch/2)+v2.y ,this.node.rotation,
 														this.v_bulletsprite[this.v_type-1]).getComponent("bullet");													  
-		sp_bullet.f_InitBullet(	this.v_type,this.v_seat,this.v_bulletspeed);	
+		sp_bullet.f_InitBullet(	this.v_type,this.v_seat,this.v_bulletspeed,false);	
 		sp_bullet.node.name = event.detail.id;
 		//执行动作
 		//var action = cc.moveTo(tp[2]/this.v_bulletspeed,tp[0],tp[1]);    
@@ -280,9 +297,10 @@ cc.Class({
 	},
     //初始化炮类型
 	//设置炮类型
-    f_SetType:function(event){		
+    SetType:function(event){		
 		global.ac.emit('change');
-		this.v_type = event.detail.type;
+		//this.v_type = event.detail.type;
+		this._bulletcost = event.detail.cost;
 		this.node.getComponent(cc.Sprite).spriteFrame = this.v_gunsprite[this.v_type-1];
 		
 		//console.log('----- ='+this.v_type);

@@ -8,6 +8,8 @@ var Global = function(){
     var backid =null;
     var mygunlv =1;    
 
+    var roominfo = null;
+
     var volume =0.5;//音效音量
     var musicid = 0;//背景乐ID
     var musicvol =0.5;//背景乐音量

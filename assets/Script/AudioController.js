@@ -75,6 +75,8 @@ cc.Class({
         },this);
     },
 
+    //cc.audioEngine.uncache(filePath);
+
    
 
 

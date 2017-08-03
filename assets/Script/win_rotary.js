@@ -13,15 +13,18 @@ cc.Class({
 
         win_prize:cc.Node,
 
+        sound:[cc.AudioClip],
+
         isstart:{
             default:false,
             visible:false,
         },
 
-        prizeid:{
-            default:3,
-            visible:false,
-        }
+        _isend :false,
+        _prizeid:3,
+        _prizenum:100,
+
+        _lastrot:0,
     },
 
     // use this for initialization
@@ -30,36 +33,65 @@ cc.Class({
         this.bglay.active = true;
         //this.node.zIndex = this.bglay.zIndex-1;
 
+        this.node.on('setprize',function(event){
+            this._prizeid = event.detail.id;
+            this._prizenum = event.detail.num;
+        },this);
+
         this.btn_start.on('touchend',function(){
           
              if(this.isstart) return;
                 this.isstart = true;
 
-             var act =  cc.rotateBy(8,360*12+45*this.prizeid).easing(cc.easeQuarticActionInOut());
+            //转盘旋转动作
+             var act =  cc.rotateBy(8,360*12+45*(this._prizeid-1)).easing(cc.easeQuarticActionInOut());
+            //弹出奖励品界面动作
              var act1= cc.repeat(cc.sequence(cc.fadeTo(0.3,50),cc.fadeTo(0.3,255)),2);
+            
              
              var finished1 = cc.callFunc(function () {               
                
                this.bglay.zIndex =this.node.zIndex+1 ;
 
                this.win_prize.active = true;
+               this.win_prize.emit('setnum',{num:this._prizenum});
                this.win_prize.zIndex = this.bglay.zIndex+1;
                this.win_prize.scaleX = this.win_prize.scaleY=0.3;
                this.win_prize.runAction( cc.scaleTo(0.2,1,1));
+               this.unscheduleAllCallbacks();              
             }, this);
             
-            var finished = cc.callFunc(function () {
-               
-                this.selectlight.active = true;               
-               this.selectlight.runAction(cc.sequence(act1,finished1));              
+            var finished = cc.callFunc(function () {               
+                this.selectlight.active = true;     
+                cc.audioEngine.play(this.sound[1], false,global.volume);
+                this._isend =true;
+                this.selectlight.runAction(cc.sequence(act1,finished1));              
             }, this);
 
-            this.rotary.runAction(  cc.sequence(act,finished)   );
+             this._lastrot = this.rotary.rotation;
+              cc.audioEngine.play(this.sound[0], false,global.volume);    
+              
+            this.rotary.runAction(  cc.sequence(act,finished)   );//开启转 盘       
+            
+            this.node.emit('rotarysound',this);
+
         },this);
+
+        
 
         this.schedule(function() {  
             this.light[0].active = !this.light[0].active;
             this.light[1].active = !this.light[1].active;
         }, 0.3);
     },
+
+    update:function(){
+        if(this._isend) return;
+        if(!this.isstart) return;       
+       
+        if(this.rotary.rotation > (this._lastrot +360) ){
+            cc.audioEngine.play(this.sound[0], false,global.volume);     
+            this._lastrot =this.rotary.rotation;
+        }   
+    },    
 });

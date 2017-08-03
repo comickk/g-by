@@ -47,16 +47,18 @@ cc.Class({
 		
 		//渔网图
 		v_netsprite:[cc.SpriteFrame],			
+
+		loadbg:cc.Node,
 	  
 		// 准备锁鱼		
 		_readylock:false,					
 		//_playerinfo:[],
 		_seatid:[],
-		_roominfo:null,
+		//_roominfo:null,
 		
-		_gunstyle:null,
-		_gunstyle_fixed:1,
+		_gunstyle:null,		
 
+		_autofire:false,
 		//_playerinfo:[],
 		//----------------测试
 		log:cc.Label,
@@ -120,6 +122,12 @@ cc.Class({
 				global.socket.ws.send(JSON.stringify(p));
 			}
 		},this);
+
+		
+		this.node.on('autofire',function(){
+			this._autofire = true;
+			this.schedule(this.AutoFire,0.3);			
+		},this);
 		
 		
 		//服务器鱼消息
@@ -157,26 +165,26 @@ cc.Class({
 		
      	}
  	};
-	 //xhr.open("GET", "http://192.168.2.173/assets/fish.trail.json", true);
-	 xhr1.open("GET", "http://"+global.socket.URL +"/assets/fish.trail.json?"+new Date().getTime(), true);
-	 xhr1.send();
-	 
-	 //读取炮样式-----------
-	
-	  var xhr2 = new XMLHttpRequest();
-	 xhr2.onreadystatechange = function () {
-     	if (xhr2.readyState == 4 && (xhr2.status >= 200 && xhr2.status < 400)) {
-        	var response = xhr2.responseText;
-			
-			that._gunstyle = JSON.parse(response);					
-			
-			that.node.emit('ready');
-     	}
- 	};	
-	xhr2.open("GET", "http://"+global.socket.URL +"/client/cfg/bullet?"+new Date().getTime(), true);
-	xhr2.send();
+		//xhr.open("GET", "http://192.168.2.173/assets/fish.trail.json", true);
+		xhr1.open("GET", "http://"+global.socket.URL +"/assets/fish.trail.json?"+new Date().getTime(), true);
+		xhr1.send();
+		
+		//读取炮样式-----------
+		
+		var xhr2 = new XMLHttpRequest();
+		xhr2.onreadystatechange = function () {
+			if (xhr2.readyState == 4 && (xhr2.status >= 200 && xhr2.status < 400)) {
+				var response = xhr2.responseText;
+				
+				that._gunstyle = JSON.parse(response);					
+				
+				that.node.emit('ready');
+			}
+		};	
+		xhr2.open("GET", "http://"+global.socket.URL +"/client/cfg/bullet?"+new Date().getTime(), true);
+		xhr2.send();
 
-	//this._log = cc.find('console').getComponent(cc.Label);	
+		//this._log = cc.find('console').getComponent(cc.Label);	
 
    },
     
@@ -195,6 +203,16 @@ cc.Class({
 
 		// console.log(msg.data);
 		 switch(msg.method){
+			case 1008://服务器公告
+			//cc.log(msg.data);
+			if(cc.isValid(global.broad))
+				global.broad.emit('settext',{text:msg.data});
+			break;
+
+			case 1010://打死鱼公告
+				this.FishBroad(msg.data);
+			break;
+
           case 2002:   //1对1 聊天        
 			break;
 		case 2004://群聊
@@ -268,6 +286,9 @@ cc.Class({
 
 		this.node.targetOff(this);
 
+		if(cc.isValid(global.roominfo))		
+			global.roominfo = null;
+		
 		//global.pool_net.destroy();
 		//global.pool_coin.destroy();
 		//global.pool_bullet.destroy();
@@ -280,14 +301,20 @@ cc.Class({
 		}		
 		
 		var userinfo = data[0];				
+		cc.log(userinfo);
+		//[0] extend_data
+		//[1] open_time
+		//[2] current_bullet_level
+		//[3] vip
+		//[4] score
+		//[5] gift_count
 
+
+		
 		//var group_info = data[1];
 		//if(this._roominfo == null)
-		this._roominfo = global.socket.MsgToObj(data[1]);		
-		global.backid = this._roominfo.back_id;
-
-		this._gunstyle_fixed = this.GetGunStyle(this._roominfo.type);
-
+		//global.roominfo = global.socket.MsgToObj(data[1]);	
+		this.SetRommInfo(global.socket.MsgToObj(data[1]));		
 		
 		data = data[2];// [0]座号1  [1]ID1   [2]座号2   [3]ID2 .......			
 		
@@ -308,12 +335,10 @@ cc.Class({
 					if(!cc.isValid(this._gunstyle.data) || !cc.isValid(FishMath.fishpath.data)){
 						global.ui.emit('error',{msg:'读取配置文件失败,请重新登录'});												
 						return;
-					}					
-
+					}		
+					this.loadbg.active = false;
 					//显示锁定和冰冻的数量
-					var cost = this.GetPropCost(this._roominfo.type);		
-						
-					global.ui.emit('settools',{ice:cost,lock:cost});							
+					global.ui.emit('settools');							
 				}else{
 					this._seatid[seat] = id;//data[i+1].split('::')[0];						
 				}
@@ -321,23 +346,34 @@ cc.Class({
 				//取出玩家信息
 				var user ;
 				var level=1;
-				for(let j =0;j<userinfo.length;j+=3){
+				var style = global.roominfo.gunstyle;
+				var cost = 1;
+				for(let j =0;j<userinfo.length;j+=6){
 					user = JSON.parse(userinfo[j]);
+					//cc.log(user);
 					if(user.id == id ){// 
 						level = userinfo[j+2]-0;//取得炮等级 
-						if(user.id == global.myid)								
-							global.mygunlv =level;						
+						cost = this._gunstyle.data[level-1].cost
+						user.vip = userinfo[j+3]-0;
+						user.score = userinfo[j+4];
+						if(user.vip > 0)	style = 3+user.vip;
+					
+						if(user.id == global.myid)	global.mygunlv =level;	
+
 						break;						
 					}						
 				}
-				//cc.log(user);						
-
-				var style = this._gunstyle_fixed;
+				//cc.log(user);		
+				
 				//if( cc.isValid( this._gunstyle.data[level-1])) 
 				//	style = this._gunstyle.data[level-1].style;
 				this.v_guns[s] = cc.instantiate(this.prefab[Ptype.GUN-0]);      
-				this.v_guns[s].getComponent('gun').f_InitGun(seat,style, this.node,this.gunseat[s].rotation-90,
-					this.gunseat[s].x,this.gunseat[s].y);
+				this.v_guns[s].getComponent('gun').InitGun(seat,style, this.node,this.gunseat[s].rotation-90,
+															this.gunseat[s].x,this.gunseat[s].y,this._gunstyle.data[level-1].cost);
+				
+				// this.v_guns[s].emit('addgun',{	seat:seat,type:style,parent:this.node,
+				// 								r:this.gunseat[s].rotation-90,x:this.gunseat[s].x,y:this.gunseat[s].y,
+				// 								cost:this._gunstyle.data[level-1].cost });
 
 				
 				//设置玩家面板信息			
@@ -351,8 +387,9 @@ cc.Class({
 				// this.log.string='-------1------------\n';
 				// this.log.string+= s+'\n';
 			
-				global.ui.emit('addplayer',{seat:seat,name:user.nickname,gold:user.score,diamond:user.diamond,
-					lv_curr: this._gunstyle.data[level-1].cost,lv_max:this._gunstyle.data[user.bullet_level-1].cost});
+				global.ui.emit('addplayer',{seat:seat,	name:user.nickname,
+											gold:user.score,	vip:user.vip,
+											lv_curr: cost,		lv_max: cost}	);
 			}
 		}					
 		return;
@@ -426,17 +463,14 @@ cc.Class({
 	Touch(event){		
 		//console.log('-----------touch'+ event.getLocationX()+'    '+event.getLocationY());	
 		//if(this.v_guns[global.myseat-1]==null) return;	
-		
-		if(this._readylock) return;
-		
-		if(global.myinfo.score <   this._gunstyle.data[global.mygunlv-1].cost) {
-			//console.log('-----------  4'+  typeof(global.myinfo.score) +'  '+ typeof(global.mygunlv));	
-			return;
+		if(this._autofire) {
+			this._autofire = false;
+			this.unschedule(this.AutoFire);
 		}
-		
-		let v2 = this.node.convertToNodeSpace( cc.v2( event.getLocationX(),event.getLocationY()));
 
-		//console.log('----------- m pos ='+ v2 );		
+		if(this._readylock) return;		
+		
+		let v2 = this.node.convertToNodeSpace( cc.v2( event.getLocationX(),event.getLocationY()));		
 
 		this.v_guns[global.myseat-1].emit( 'fire' ,{ x:v2.x,y:v2.y }  );
 		
@@ -468,13 +502,12 @@ cc.Class({
 	//碰撞事件处理
 	Collider:function(event){		
 		//生成鱼网  类型和初始位置		
-		
-		global.pool_net.f_GetNode(	this.node, event.detail.x, event.detail.y,0,
-									this.v_netsprite[event.detail.type-1]).getComponent("net").f_InitNet( event.detail.type,
-																										  event.detail.seat,this);				
+		var msg = event.detail;
+		global.pool_net.f_GetNode(	this.node, msg.x, msg.y,msg.r,
+									this.v_netsprite[msg.type-1]).getComponent("net").f_InitNet( msg.type,msg.seat,this);				
 		
 		//不是自己的子弹打中的鱼不计算  不发送
-		if(event.detail.seat-0 != global.myseat)	return;
+		if(msg.seat-0 != global.myseat)	return;
 
 		//console.log(' ----客户端碰撞点 x ='+ event.detail.x +' y= '+event.detail.y);																								  
 		//方式一    只传递子弹碰到的那一个鱼
@@ -485,7 +518,7 @@ cc.Class({
 		//console.log(this.node.width+'-----'+cc.Canvas.instance.node.width);
 
 		//*//方式二    检测鱼网炸开范围内的鱼	--------------------------------	
-		var netv = cc.v2(event.detail.x,event.detail.y);
+		var netv = cc.v2(msg.x,msg.y);
 		var dis = 0;
 		var fishs = this.fishlayer.children;
 		var catchfish = [];	
@@ -501,8 +534,7 @@ cc.Class({
 			//最小鱼网半径 55，每级加 7
 			//if(dis < 55 + 7*event.detail.type )
 			//console.log('------'+dis+'  '+f.x+' '+f.y+'   '+ netv.x+'   '+netv.y);
-			if(dis <70 )
-			{
+			if(dis <70 ){
 				//f.emit('test',{x:netv.x,y:netv.y});
 				catchfish.push(f.name);				
 
@@ -527,18 +559,18 @@ cc.Class({
 		}		
 		//console.log(catchfish);
 	//	*/
-		if(catchfish.length==0) 	catchfish.push(event.detail.fishname);	
+		if(catchfish.length==0) 	catchfish.push(msg.fishname);	
 
 		var p = {
 			version: 102,
 			method: 5003,
-			backendId: global.backid,//'112aba1ad4424e7891037028ef024645',//back_id,
+			backendId: global.roominfo.back_id,//'112aba1ad4424e7891037028ef024645',//back_id,
 			seqId: Math.random() * 1000,
 			timestamp: new Date().getTime(),
 			data: JSON.stringify( [{
-				id: event.detail.id,//new Date().getTime(),
-				x: event.detail.x/(this.node.width/2),
-				y: event.detail.y/(this.node.height/2)},
+				id:msg.id,//new Date().getTime(),
+				x: msg.x/(this.node.width/2),
+				y: msg.y/(this.node.height/2)},
 				//[event.detail.fishname]]
 				[catchfish]]
 			)
@@ -786,8 +818,19 @@ cc.Class({
 	//----------------------------------------
 	LockFish:function(event){   //fish   seat
 		if(!this._readylock) return;
+
 		console.log(' ------已锁定一条鱼------');
-		this.v_guns[global.myseat-1].emit('lockfish',{fish:event.detail.fish});
+		this.v_guns[global.myseat-1].emit('lockfish',event.detail);
+
+		var p = {
+			version: 102,
+			method: 5011,	
+			backendId:global.roominfo.back_id,			
+			seqId: Math.random() * 1000,
+			timestamp: new Date().getTime(),
+			data:JSON.stringify( [2,event.detail.fish.name]  ),
+		};
+		global.socket.ws.send(JSON.stringify(p));			
 	},
 	CancelLock:function(){  //seat
 		console.log(' ------取消锁定------');//被锁定的鱼被打死
@@ -817,30 +860,32 @@ cc.Class({
     },
 	//使用道具
 	UseProp:function(data){
-		console.log(data);
+		console.log(data); 
 		var seat = this.GetPlayerSeat(data[0]);
 		if(seat<1 || seat >4){
 			console.log('坐号错误 '+'  UseProp  '+ seat+'  '+ data[0]);
 			return;
 		} 
-		var num = data[1];
+		//var num = data[1];//使用完道具后的数量
+		var gold =data[1];
 		var type = data[2];
 		
-		if(seat == global.myseat)
-			global.myinfo.tool_1 = num;	
+		// if(seat == global.myseat)
+		// 	global.myinfo.tool_1 = num;	
 	
 		switch(type){
 			case 1://冰冻			
 			//如果是自己，自己的道具数减1 
 			//
 			//for(var f of this.fishlayer.children)
-			global.ui.emit('freeze',{seat:seat,num:num,type:type});
+			global.ui.emit('freeze',{seat:seat,gold:gold});
 			global.ac.emit('freeze');
 			for(let i=0;i<this.fishlayer.children.length;i++)
 				this.fishlayer.children[i].emit('freeze');//f.emit('freeze');
 			break;
 
 			case 2://锁定
+				global.ui.emit('lock',{seat:seat,gold:gold});
 			break;
 		}
 	},
@@ -872,12 +917,12 @@ cc.Class({
 		//给对应炮发消息，改变类型
 		//console.log(this._gunstyle);
 		//7-30炮样式以房间类型和VIP等级决定
-		var style = this._gunstyle_fixed;
+		var style = global.roominfo.gunstyle;
 		//if(this._gunstyle.data[lv-1].style>0)
 		//	style = this._gunstyle.data[lv-1].style;
 		//console.log('-----------'+style);
 
-		this.v_guns[seat-1].emit('changetype',{type:style});	
+		this.v_guns[seat-1].emit('changetype',{type:style,cost:this._gunstyle.data[lv-1].cost});	
 		 
 		var effect = this.gunseat[seat-1].getChildByName("effect");
 		if(effect!=null){
@@ -1047,37 +1092,60 @@ cc.Class({
 		console.log('============================='+data.method);
 	},
 
-	GetPropCost:function(roomtype){
-		var cost =1;
-		switch(roomtype){
-			case 'qingtong':
-			cost =100;
-			break;
-			case 'baiyin':
-			cost=1000;
-			break;
-			case 'huangjin':
-			cost =10000;
-			break;
+	AutoFire:function(){
+		//if(this._readylock) return;//非锁定状态下		
+		if(this._readylock){
+			this._autofire = false;
+			this.unschedule(this.AutoFire);
 		}
-		return cost;
+
+		if(global.myinfo.score <   this._gunstyle.data[global.mygunlv-1].cost) {
+			global.ui.emit('Recharge');
+			this._autofire = false;
+			this.unschedule(this.AutoFire);
+		}
+
+		//cc.log('开火');
+		
+		//let v2 = this.node.convertToNodeSpace( cc.v2( cc.Canvas.instance.width/2,cc.Canvas.instance.height/2));	
+		//this.v_guns[global.myseat-1].emit( 'fire' ,{ x:0,y:0 }  );
+		this.v_guns[global.myseat-1].emit( 'fire' ,{ x:cc.Canvas.instance.node.width/2,y:cc.Canvas.instance.node.height/2 }  );
 	},
 
-	GetGunStyle:function(roomtype){
-		var type =1;
-		switch(roomtype){
-			case 'qingtong':
-			type =1;
-			break;
-			case 'baiyin':
-			type=2;
-			break;
-			case 'huangjin':
-			type =3;
-			break;
+	SetRommInfo:function(info){
+		if(cc.isValid(global.roominfo)) return;
+		global.roominfo =info;
+
+		switch(global.roominfo.type){
+		case 'qingtong':
+			global.roominfo['freeze'] =100;
+			global.roominfo['lock'] =100;
+			global.roominfo['lv_min']=1;
+			global.roominfo['lv_min'] =100;
+			global.roominfo['gunstyle'] =1;
+		break;
+		case 'baiyin':
+			global.roominfo['freeze'] =1000;
+			global.roominfo['lock'] =1000;
+			global.roominfo['lv_min']=100;
+			global.roominfo['lv_min'] =1000;
+			global.roominfo['gunstyle'] =2;
+		break;
+		case 'huangjin':
+			global.roominfo['freeze'] =10000;
+			global.roominfo['lock'] =10000;
+			global.roominfo['lv_min']=1000;
+			global.roominfo['lv_min'] =10000;
+			global.roominfo['gunstyle'] =3;
+		break;
 		}
-		return type;
 	},
+
+	FishBroad:function(data){
+		// 0 userid    1 fish id     2 fish money   3 doc[1]  4 fishgift      5       6位是鱼类型 第7位是用户昵称 
+		cc.log(data);
+	},
+	
 	//跟据id变换为坐号
 	GetPlayerSeat:function(id){
 		var seat =0;

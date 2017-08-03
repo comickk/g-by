@@ -25,15 +25,25 @@ cc.Class({
         loadprog:cc.Node,
 
         username:cc.Label,
+        viplevel:cc.Label,
         usergold:cc.Label,
         userdiamond:cc.Label,
 
         btn_play:cc.Node,
+
+        sound:[cc.AudioClip]
     },
 
     // use this for initialization
     onLoad: function () {
 
+        var BGM = cc.find('BGM');
+        if(cc.isValid(BGM) && !BGM.active)
+            BGM.active =true;
+
+        this.node.on('getprize',function(){
+            this.usergold.string = global.myinfo.score + global.myinfo.wheel_of_fortune_bonus;
+        },this);
 
         this.popwinlayer.on('touchend',function(){event.stopPropagation();});  
 
@@ -47,7 +57,8 @@ cc.Class({
         }       
 
         global.socket.controller = this;
-        //this.win_rotary.active = true;//每日登录奖励转盘
+       
+       //cc.log(global.myinfo);        
 
        //开启socket心跳发送
        this.schedule(function() {
@@ -67,13 +78,38 @@ cc.Class({
         //console.log(global.myinfo);
         this.username.string = global.myinfo.nickname;//JSON.parse( global.myinfo.extend_data)['nickname'];
         this.usergold.string =global.myinfo.score;
-        this.userdiamond.string='0';        
+        this.userdiamond.string=global.myinfo.gift_count;   
+
+        if(global.myinfo.vip -0 >0 )
+            this.viplevel.string = 'VIP '+global.myinfo.vip +' 级';   
+        
+        //-------转盘测试------------
+       //  this.win_rotary.active = true;//每日登录奖励转盘 
+       //  this.win_rotary.emit('setprize',{  id: 6,   num:1000});
+         //-----------------
+       
+         // cc.log(global.myinfo);
+        if(global.myinfo.wheel_of_fortune_cell-0 >0){
+             this.win_rotary.active = true;//每日登录奖励转盘            
+
+             this.win_rotary.emit('setprize',{  id: global.myinfo.wheel_of_fortune_cell-0,
+                                                num: global.myinfo.wheel_of_fortune_bonus});
+            
+            global.myinfo.wheel_of_fortune_cell=0;
+        }
+
     },
 
     //消息处理
     MsgHandle:function( msg){
         
          switch(msg.method){
+             case 1008://服务器公告
+			//cc.log(msg.data);
+			if(cc.isValid(global.broad))
+                global.broad.emit('settext',{text:msg.data});            
+            break;
+            
           case 2002: {  //1对1 聊天
            // random();
 
@@ -92,7 +128,7 @@ cc.Class({
     },
 
     EnterGame:function(data ){
-         //启动加载捕鱼场景
+         //启动加载捕鱼场景        
             var info = data[0];//所在组的所有人的信息
             var seat = data[1];//所在组的所有人坐位号    
 
@@ -110,6 +146,8 @@ cc.Class({
             }
              //console.log('---------'+global.myseat +'  '+global.myid);
           
+            
+
             this.loadprog.active = true;
             var loadsp = this.loadprog.children[2].getComponent(cc.Sprite);
             cc.loader.onProgress = function (completedCount, totalCount, item) {           
@@ -121,7 +159,12 @@ cc.Class({
             }
             cc.director.preloadScene('game_base', function () {
                   //  cc.loader.onProgress=null;
-                   cc.director.loadScene('game_base');
+                var BGM = cc.find('BGM');
+                    if(cc.isValid(BGM))
+                        BGM.active =false;
+                       // cc.game.removePersistRootNode(BGM);
+
+                cc.director.loadScene('game_base');
             });
     },
 
@@ -184,6 +227,8 @@ cc.Class({
 
     Btn_Back:function(){
         //退回到登录场景
+        //global.socket.ClearMsg();//断开socket
+
          cc.director.preloadScene('login', function () {
                  cc.loader.onProgress=null;
                cc.director.loadScene('login');               
@@ -280,6 +325,7 @@ cc.Class({
         }
 
         this.room[id].runAction(cc.spawn(cc.moveTo(0.3,pos.x,pos.y),cc.scaleTo(0.3,scale,scale)));
+        cc.audioEngine.play(this.sound[0], false,global.volume);
     },
 
     CloseSocket:function(){		

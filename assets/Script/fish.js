@@ -152,10 +152,25 @@ cc.Class({
 		//方案三 在当前方向一定范围内随机位置 角度，加速游出 
 		var hidetime = 1.5;
 		var len = 400;
-		var dr =cc.randomMinus1To1()*60;
+		var dr =cc.randomMinus1To1()*80;
 		var hu = (Math.PI/180)*(this.node.rotation+dr);
 		var dy = -Math.sin(hu)*len;
 		var dx = Math.cos(hu)*len;		
+
+		// var r = dr%180;
+		// if( r>0){
+		// 	if(r>90){
+		// 		dx
+		// 	}else{
+
+		// 	}
+		// }else{
+		// 	if(r < -90){
+
+		// 	}else{
+
+		// 	}
+		// }
 
 		var anim = this.body.getComponent(cc.Animation);
 		var clip = 	  anim.getClips()[0];
@@ -173,10 +188,10 @@ cc.Class({
 		// 	this.node.destroy();
 		// }, this);										  
 		this.body.runAction( cc.sequence(	cc.spawn( 	cc.moveBy(hidetime,dx,dy),
-		 												cc.rotateBy(hidetime/3,dr),
+		 												cc.rotateBy(hidetime/4,dr),
 														cc.fadeOut(hidetime) ),
-		 									cc.callFunc(function(){
-														 this.node.destroy();},this)));	
+		 									cc.callFunc(function(){// cc.log('假装消失一下');
+														 this.node.destroy(); },this)));	
 		// this.scheduleOnce(function() {
      	//  	this.node.destroy();
 		// }, hidetime);

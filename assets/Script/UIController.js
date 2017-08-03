@@ -28,6 +28,9 @@ cc.Class({
 		//mybg:cc.Node,
 		//test var
 		//guntype:1
+
+		//-----------------
+		_paytip:0,
     },
 
     // use this for initialization
@@ -40,9 +43,9 @@ cc.Class({
 		this.node.on('addplayer',this.f_AddPlayer,this);
 		this.node.on('delplayer',this.f_DelPlayer,this);
 		this.node.on('setplayer',this.SetPlayer,this);
-		this.node.on('settools',function(event){
-			this.btn[5].getChildByName('num').getComponent(cc.Label).string= event.detail.lock;//global.myinfo.tool_2;
-			this.btn[6].getChildByName('num').getComponent(cc.Label).string= event.detail.ice; //global.myinfo.tool_1;
+		this.node.on('settools',function(){
+			this.btn[5].getChildByName('num').getComponent(cc.Label).string= global.roominfo.lock;
+			this.btn[6].getChildByName('num').getComponent(cc.Label).string= global.roominfo.freeze;
 
 		},this);
 
@@ -60,6 +63,15 @@ cc.Class({
 		this.node.on('error',function(event){
 			this.win_tip.active = true;
 			this.win_tip.emit('settip',{type:2,msg:event.detail.msg,scene:'login'});
+		},this);
+
+		//金币不足
+		this.node.on('Recharge',function(){
+			if(this._paytip>0) return;
+			this._paytip++;
+			this.tipmenu.emit('paytip');
+			// this.win_tip.active = true;
+			// this.win_tip.emit('settip',{type:2,msg:'您的金币不足哟！请前往金币商店充值',scene:'login'});
 		},this);
 
 		this.node.on('setgunlevel',function(event){
@@ -81,43 +93,26 @@ cc.Class({
 
 
 		this.node.on('freeze',function(event){
-				
+			var msg =event.detail;
 			var ice = global.game.getChildByName("ice");
 			ice.active = true;
 			ice.opacity= 100;
 			ice.runAction(cc.fadeTo(1,255));
 
-			var seat = event.detail.seat-0;
-			if(seat == global.myseat){
+			var seat = msg.seat-0;
+			if(seat == global.myseat){ //进入冰冻CD
 				//this.btn[6].getChildByName('num').getComponent(cc.Label).string= event.detail.num;				
 				//this.btn[6].getComponent(cc.Button).interactable = false;
 				//冰冻进入CD
-				this.btn[6].getComponent(cc.Button).interactable= false;
-				var mask = this.btn[6].getChildByName("btn_mask");
-				mask.active = true;
-				var sp = mask.getComponent(cc.Sprite);
-				sp.fillRange =1;
-
-				var that = this;
-				var spcallback = function () {
-					if(sp.fillRange <=0){     			
-						sp.unschedule(spcallback);        
-						that.btn[6].getComponent(cc.Button).interactable= true;
-						sp.node.active = false;
-					}
-					else{
-						sp.fillRange -= 1/(9/0.1);
-					}
-				}
-				sp.schedule(  spcallback , 0.1);
-			}			
-			
+				this.SkillCD(6);
+				global.myinfo.score = msg.gold;
+			}					
 
 			if(global.myseat>2)
 			if(seat > 2) seat -= 2;
 			else seat += 2;
 			
-			this.playerInfo[seat-1].emit('changegold',{gold:event.detail.num});
+			this.playerInfo[seat-1].emit('changegold',{gold:msg.gold});
 
 			if(cc.isValid(this.playerInfo[seat-1]))
 				this.playerInfo[seat-1].emit('freeze');
@@ -127,6 +122,22 @@ cc.Class({
 				ice.active = false; 
 			// 	that.btn[6].getComponent(cc.Button).interactable = true;
 				}, 9);
+		},this);
+
+		this.node.on('lock',function(event){
+			var msg =event.detail;			
+
+			var seat = msg.seat-0;
+			if(seat == global.myseat){ //进入锁定				
+				//this.SkillCD(6);
+				global.myinfo.score = msg.gold;
+			}					
+
+			if(global.myseat>2)
+			if(seat > 2) seat -= 2;
+			else seat += 2;	
+			
+			this.playerInfo[seat-1].emit('changegold',{gold:msg.gold});
 		},this);
 
 		this.node.on('chat',function(event){
@@ -156,14 +167,32 @@ cc.Class({
     	var msg = event.detail;  
 
 		//若玩家坐号为3  4 号，需转换座号，
-		var seat = Number( msg.seat);		
-		
+		var seat =  msg.seat-0;		//实际位置 
+		var ts = seat;				//相对位置 
+
 		if(seat<1 || seat >4){
 			console.log('坐号错误 '+'  f_AddPlayer  '+ seat+'  '+ msg.seat);
 			return;
 		} 
 
-		if(global.myseat == seat-0){
+		if(global.myseat>2){
+    		if(ts > 2) ts -= 2;
+    		else ts += 2;
+		}		
+
+		if(global.myseat == seat){
+
+			//激活玩家面板
+			this.btn[5].active = true;//锁定
+			this.btn[6].active = true;//冰冻
+
+			//激活加减炮 
+			this.playerbtn.active = true;
+			this.playerbtn.setPosition( this.pos_btn[ ts-1].getPosition() );
+
+			this.tipmenu.emit('setdirect',{direct:2});//系统菜单
+			//this.tipunlockgun.emit('setdirect',{direct:1});//解 锁炮菜单
+
 			//添加位置提示
 			this.playertool.active = true;
 			this.seattip.active =true;
@@ -176,37 +205,16 @@ cc.Class({
 				that.playertool.active = false;				
 				that.seattip.active =false;
 			}, 3);
-		}
-    	if(global.myseat>2){
-    		if(seat > 2) seat -= 2;
-    		else seat += 2;
-		}		
-
-		//激活玩家面板
+		}    		
 		
-		this.playerInfo[seat-1].emit('playercome',{name:msg.name,gold:msg.gold,diamond:msg.diamond,lv_curr:msg.lv_curr,lv_max:msg.lv_max});
-		
-		//添加自己
-		if(global.myseat ==  msg.seat-0){
-			this.btn[5].active = true;//锁定
-			this.btn[6].active = true;//冰冻
+		this.playerInfo[ts-1].emit('playercome',{name:msg.name,gold:msg.gold,vip:msg.vip,lv_curr:msg.lv_curr,lv_max:msg.lv_max});
+	},
+	
 
-			//激活加减炮 
-			this.playerbtn.active = true;
-			this.playerbtn.setPosition( this.pos_btn[ seat-1].getPosition() );
-
-			this.tipmenu.emit('setdirect',{direct:2});//系统菜单
-			this.tipunlockgun.emit('setdirect',{direct:1});//解 锁炮菜单
-
-		}else{//添加其它玩家
-
-		}		
-
-    },
-     f_DelPlayer:function(event){
+    f_DelPlayer:function(event){
     	var msg = event.detail;
 
-		var seat = Number( msg.seat);	
+		var seat = msg.seat-0;	
 		if(seat<1 || seat >4){
 			console.log('坐号错误 '+'  f_DelPlayer  '+ seat+'  '+ msg.seat);
 			return;
@@ -223,11 +231,13 @@ cc.Class({
 	SetPlayer:function(event){
 		var msg = event.detail;
 
-		var seat = Number( msg.seat);	
+		var seat =  msg.seat-0;	
 		if(seat<1 || seat >4){
 			console.log('坐号错误 '+'  SetPlayer  '+ seat+'  '+ msg.seat);
 			return;
 		} 
+		if(msg.seat == global.myseat)
+			global.myinfo.score = msg.gold;
 
     	//若玩家坐号为3  4 号，需转换座号，
     	if(global.myseat>2){
@@ -322,38 +332,23 @@ cc.Class({
 		global.game.emit('lockstart');
 		//锁定开关计时 进入CD
 		
-		this.btn[5].getComponent(cc.Button).interactable= false;
-		var mask = this.btn[5].getChildByName("btn_mask");
-		mask.active = true;
-		var sp = mask.getComponent(cc.Sprite);
-		sp.fillRange =1;
-
-		var that = this;
-		var spcallback = function () {
-     		if(sp.fillRange <=0){     			
-				sp.unschedule(spcallback);
-				//锁定结束
-				global.game.emit('lockend');
-				that.btn[5].getComponent(cc.Button).interactable= true;
-				sp.node.active = false;
-        	}
-        	else{
-        		sp.fillRange -= 1/(10/0.1);
-        	}
- 		}
- 		sp.schedule(  spcallback , 0.1);
-
+		this.SkillCD(5);
 	},
 
 	//冰冻-------------------
 	f_btn_Ice:function(){		
 
-		if(global.myinfo.tool_1 < 1 ) return;		
+		//if(global.myinfo.tool_1 < 1 ) return;		
+		if(global.myinfo.score <  global.roominfo.freeze) {			
+			//金币不足，发送提示	
+			global.ui.emit('Recharge');
+			return;
+		}
 
 		var p = {
 			version: 102,
 			method: 5011,	
-			backendId: global.backid,			
+			backendId:global.roominfo.back_id,			
 			seqId: Math.random() * 1000,
 			timestamp: new Date().getTime(),
 			data:JSON.stringify( [1,{}]  ),
@@ -447,4 +442,28 @@ cc.Class({
 		this.win_chat.active = true;
 	},
 
+	Btn_AutoFire:function(){
+		global.game.emit('autofire');
+	},
+
+	SkillCD:function(type){  //5锁定   6 冰冻
+		this.btn[type].getComponent(cc.Button).interactable= false;
+		var mask = this.btn[type].getChildByName("btn_mask");
+		mask.active = true;
+		var sp = mask.getComponent(cc.Sprite);
+		sp.fillRange =1;
+
+		var that = this;
+		var spcallback = function () {
+			if(sp.fillRange <=0){     			
+				sp.unschedule(spcallback);        
+				that.btn[type].getComponent(cc.Button).interactable= true;
+				sp.node.active = false;
+			}
+			else{
+				sp.fillRange -= 1/(9/0.1);
+			}
+		}
+		sp.schedule(  spcallback , 0.1);
+	},	
 });

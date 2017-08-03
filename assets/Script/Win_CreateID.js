@@ -58,7 +58,7 @@ cc.Class({
                 cc.log(s);
                 if(cc.isValid(s.error)){
                      self.tip.active= true;
-                     self.tip.emit('settip',{type:2,msg:s.msg});
+                     self.tip.emit('settip',{type:2,msg:s.error.msg});
                 }else{
                      self.login.emit('createid',{nick:nick,pass:psw1});
                     self.Hide();

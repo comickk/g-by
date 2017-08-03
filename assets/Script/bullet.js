@@ -21,6 +21,7 @@ cc.Class({
 		//v_isclear:false,		
 		ismoveing:true,		
 		
+		_collidemsg:true,
 		//_id:0,
     },
 
@@ -199,7 +200,7 @@ cc.Class({
      },	 
 */
 	
-	f_InitBullet:function(type,seat,speed){
+	f_InitBullet:function(type,seat,speed,isself){
 		this.v_rebound =0;
 		this.ismoveing = false;
 		//this.v_isclear = false;
@@ -208,6 +209,7 @@ cc.Class({
 		this.v_type = type;		
 		this.v_seat = seat;
 		this.v_speed = speed;			
+		this._collidemsg = isself;//是否发送碰撞消息
 	},
 	 
 	 //产生碰撞，将碰撞点信息发送到服务端,并消除子弹,等待服务器验证后生成爆炸点 
@@ -225,11 +227,12 @@ cc.Class({
 
 
 		//让鱼闪一下
-		other.node.emit('flash');
-		//
-		global.game.emit('collider',{seat:this.v_seat,type:this.v_type,	x:this.node.x,y:this.node.y,
-									 id:this.node.name,fishname:other.node.name});
-								
+		if(this._collidemsg){
+			other.node.emit('flash');		
+			global.game.emit('collider',{seat:this.v_seat,type:this.v_type,	x:this.node.x,y:this.node.y,r:this.node.rotation,
+										id:this.node.name,fishname:other.node.name});
+		}
+
 		//消毁子弹(返回对象池)									
 		this.node.stopAllActions();		
 		this.v_locktarget ='';		
