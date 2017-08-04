@@ -14,6 +14,8 @@ cc.Class({
 
 		popwinbg:cc.Node,
 		//win_unlockgun:cc.Node,
+		msgtip:cc.Node,
+
 		win_tip:cc.Node,
 		win_shop:cc.Node,
 		win_chat:cc.Node,
@@ -39,6 +41,8 @@ cc.Class({
 		global.ui = this.node;		
 		this.popwinbg.width = this.node.parent.width;
 		this.popwinbg.height = this.node.parent.height;
+
+		this.node.on('event_iap',this.IapEvent,this);
 
 		this.node.on('addplayer',this.f_AddPlayer,this);
 		this.node.on('delplayer',this.f_DelPlayer,this);
@@ -468,4 +472,55 @@ cc.Class({
 		}
 		sp.schedule(  spcallback , 0.1);
 	},	
+
+	Btn_PayProduct:function(event,customEventData){
+        if(!cc.isValid(global.anysdk)){
+			this.win_tip.active = true;
+            this.win_tip.emit('settip',{type:2,msg:'目前无法使用支付系统',scene:''});
+            return;
+		}
+		        
+        global.anysdk.payForProduct(customEventData+'','gold','0.01',global.myid+'',global.myinfo.nickname+'',global.myinfo.score+'',global.myinfo.vip+'');      
+	},  
+	
+     IapEvent:function(event){
+        var msg = event.detail;
+        switch(msg.type){
+            case 'pay'://支付一个商品
+            //this.testlabel.string = '---'+ msg.goods_id+'---'+ msg.goods_name+'---'+ msg.goods_price+'---'+ msg.user_id+'---'+ msg.user_nick+'---'+ msg.user_gold+'---'+ msg.user_vip;
+            break;
+
+			case 'kPaySuccess'://支付成功  //进入等待服务器确认支付
+				this.win_shop.active = false;
+                this.popwinbg.active = true;
+                this.msgtip.active = true;
+                this.msgtip.emit('settip',{msg:'支付成功,正在等待服务器发放商品...'});
+            break;
+			 case 'kPayFail1':
+			 	this.win_tip.active = true;
+                this.win_tip.emit('settip',{type:2,msg:'支付失败',scene:''});
+            break;
+			case 'kPayFail2':
+				this.win_tip.active = true;
+                this.win_tip.emit('settip',{type:2,msg:'支付系统网络异常,请稍侯再试',scene:''});
+            break;
+			case 'kPayFail3':
+				this.win_tip.active = true;
+                this.win_tip.emit('settip',{type:2,msg:'购买的商品信息可能已下架或信息不完整,请购买其它商品',scene:''});
+            break;
+			case  'kPayNowPaying'://支付进行中
+				this.win_tip.active = true;
+                this.win_tip.emit('settip',{type:2,msg:'一个已启用的支付订单正在处理中',scene:''});
+            break;
+        }
+	},
+	
+	GetGoods:function(data){
+
+         this.popwinbg.active = false;
+         this.msgtip.active = false;
+
+		 this.win_tip.active = true;
+         this.win_tip.emit('settip',{type:2,msg:'购买成功',scene:''});
+    },
 });

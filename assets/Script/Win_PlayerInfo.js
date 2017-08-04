@@ -26,9 +26,9 @@ cc.Class({
         //     this.SetItem(i,i,i+1);      
 
     },
+    onEnable:function(){
+         if(!cc.isValid(global.myinfo)) return;       
 
-    start:function(){
-        if(!cc.isValid(global.myinfo)) return;
         this.nick.string = global.myinfo.nickname;
         this.golds.string = global.myinfo.score;
         this.Diamonds.string = global.myinfo.gift_count;
@@ -40,6 +40,10 @@ cc.Class({
         //    // global.myinfo.tool_1 = 
         //     this.SetItem(i,i,global.myinfo['tool_'+(i+1).toString()]);
         // }
+    },
+    
+    start:function(){
+       
     },
 
     SetItem:function(soltid,itemid,num){

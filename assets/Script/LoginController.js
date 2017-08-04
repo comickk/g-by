@@ -65,8 +65,15 @@ cc.Class({
             this.Loading();            
         },this);
 
+        //------any sdk event---------------
+        this.node.on('event_iap',this.IapEvent,this);
+
+
          //初始化 anysdk
-        global.anysdk = require('PluginAnySdk').Init();
+         if(!cc.isValid( global.anysdk))
+            global.anysdk = require('PluginAnySdk').Init();
+
+        // global.anysdk.controller = this.node;
         
         //获取socket
          global.socket = socket; 
@@ -388,7 +395,21 @@ cc.Class({
         this.testlabel.string= global.anysdk.log;
     },
     Btn_TestPay:function(){
-        global.anysdk.payForProduct();
+       // (id,name,price,userid,usernick,userglod,vip) {
+        global.anysdk.payForProduct( '1','gold_1','0.01','xxxxx','huangxin','999','10' );
+    },
+
+    IapEvent:function(event){
+        var msg = event.detail;
+        switch(msg.type){
+            case 'pay'://支付一个商品
+            this.testlabel.string = '---'+ msg.goods_id+'---'+ msg.goods_name+'---'+ msg.goods_price+'---'+ msg.user_id+'---'+ msg.user_nick+'---'+ msg.user_gold+'---'+ msg.user_vip;
+            break;
+
+            case 'kPaySuccess'://支付成功  
+            break;
+
+        }
     },
     
 

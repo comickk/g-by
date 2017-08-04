@@ -10,6 +10,7 @@ cc.Class({
        _currentroom:2,
 
         popwinlayer:cc.Node,//弹窗遮罩层
+        msgtip:cc.Node,
 
         win_playerinfo:cc.Node,
 
@@ -31,11 +32,35 @@ cc.Class({
 
         btn_play:cc.Node,
 
-        sound:[cc.AudioClip]
+        sound:[cc.AudioClip],
+
+        _running:true,
+
+        _backtimeID:0,
     },
 
     // use this for initialization
     onLoad: function () {
+
+        var that = this;
+        cc.game.on(cc.game.EVENT_HIDE, function () {           
+            if(that._running){
+                cc.log('----------game hide');
+                that._running =false;
+                // that.schedule(that.SocketTest,10);
+                that._backtimeID = setInterval(that.SocketTest,10000);                
+            }            
+        });
+
+         cc.game.on(cc.game.EVENT_SHOW, function () {
+           
+            if(!that._running){
+                cc.log('----------game show');
+                that._running = true;
+                clearInterval(that._backtimeID);                
+                //that.unschedule(that.SocketTest);
+            }
+        });
 
         var BGM = cc.find('BGM');
         if(cc.isValid(BGM) && !BGM.active)
@@ -57,32 +82,45 @@ cc.Class({
         }       
 
         global.socket.controller = this;
+        global.anysdk.controller = this.node;
+
+          //------any sdk event---------------
+        this.node.on('event_iap',this.IapEvent,this);
        
        //cc.log(global.myinfo);        
 
        //开启socket心跳发送
-       this.schedule(function() {
-        // 这里的 this 指向 component
+       this.schedule(this.SocketTest1,10);
+           
+    },
+
+     SocketTest:function(){
         var p = {
                 version: 102,
                 method: 666,                       
                 seqId: Math.random() * 1000,
                 timestamp: new Date().getTime(),                     
             };
-            global.socket.ws.send(JSON.stringify(p));	
-         }, 10);      
-    },
+         global.socket.ws.send(JSON.stringify(p));
+         cc.log(cc.sys.now());	
+    } ,
+
+    SocketTest1:function(){
+        var p = {
+                version: 102,
+                method: 666,                       
+                seqId: Math.random() * 1000,
+                timestamp: new Date().getTime(),                     
+            };
+         global.socket.ws.send(JSON.stringify(p));	
+    } ,
+
+   
 
     start:function(){
         //设置玩家基本信息
         //console.log(global.myinfo);
-        this.username.string = global.myinfo.nickname;//JSON.parse( global.myinfo.extend_data)['nickname'];
-        this.usergold.string =global.myinfo.score;
-        this.userdiamond.string=global.myinfo.gift_count;   
-
-        if(global.myinfo.vip -0 >0 )
-            this.viplevel.string = 'VIP '+global.myinfo.vip +' 级';   
-        
+       this.UpdataPlayerInfo();
         //-------转盘测试------------
        // this.win_rotary.active = true;//每日登录奖励转盘 
        // this.win_rotary.emit('setprize',{  id: 6,   num:1000});
@@ -100,6 +138,15 @@ cc.Class({
 
     },
 
+    UpdataPlayerInfo:function(){
+        this.username.string = global.myinfo.nickname;//JSON.parse( global.myinfo.extend_data)['nickname'];
+        this.usergold.string =global.myinfo.score;
+        this.userdiamond.string=global.myinfo.gift_count;   
+
+        if(global.myinfo.vip -0 >0 )
+            this.viplevel.string = 'VIP '+global.myinfo.vip +' 级';           
+    },
+
     //消息处理
     MsgHandle:function( msg){
         
@@ -109,6 +156,11 @@ cc.Class({
             if(cc.isValid(global.broad))               
                 global.broad.emit('settext',{text:msg.data});            
             break;
+
+          case 1012://成功购买商品
+          cc.log(msg.data);
+            this.GetGoods(msg.data);
+          break;
             
           case 2002: {  //1对1 聊天
            // random();
@@ -263,6 +315,11 @@ cc.Class({
         this.win_vip.active = true;
     },
 
+    Btn_GetGift:function(){ 
+        this.win_gift.active = false;
+        this.win_shop.active = true;
+    },
+
     SelectRoom:function(event){
 
         if(event.target.name == this.room[this._currentroom].name) return;
@@ -333,12 +390,59 @@ cc.Class({
 		this.win_tip.emit('settip',{type:2,msg:'与服务器的联接已断开,请重新登录',scene:'login'});
 	},
   
-    Btn_PayTest:function(){
-        global.anksdk.payForProduct();
+    Btn_PayProduct:function(event,customEventData){
+        if(!cc.isValid(global.anysdk)){
+            this.win_tip.active = true;
+            this.win_tip.emit('settip',{type:2,msg:'目前无法使用支付系统',scene:''});
+            return;
+        }
+        
+        global.anysdk.payForProduct(customEventData+'','gold','0.01',global.myid+'',global.myinfo.nickname+'',global.myinfo.score+'',global.myinfo.vip+'');        
+        
+    },  
+    IapEvent:function(event){
+        var msg = event.detail;
+        switch(msg.type){
+            case 'pay'://支付一个商品
+            //this.testlabel.string = '---'+ msg.goods_id+'---'+ msg.goods_name+'---'+ msg.goods_price+'---'+ msg.user_id+'---'+ msg.user_nick+'---'+ msg.user_gold+'---'+ msg.user_vip;
+            break;
+
+            case 'kPaySuccess'://支付成功  //进入等待服务器确认支付
+                this.win_shop.active = false;
+                this.popwinlayer.active = true;
+                this.msgtip.active = true;
+                this.msgtip.emit('settip',{msg:'支付成功,正在等待服务器发放商品...'});
+                //超时处理
+            break;
+             case 'kPayFail1':
+                this.win_tip.active = true;
+                this.win_tip.emit('settip',{type:2,msg:'支付失败',scene:''});
+            break;
+            case 'kPayFail2':
+                this.win_tip.active = true;
+                this.win_tip.emit('settip',{type:2,msg:'支付系统网络异常,请稍侯再试',scene:''});
+            break;
+            case 'kPayFail3':
+                this.win_tip.active = true;
+                this.win_tip.emit('settip',{type:2,msg:'购买的商品信息可能已下架或信息不完整,请购买其它商品',scene:''});
+            break;
+            case  'kPayNowPaying'://支付进行中
+                this.win_tip.active = true;
+                this.win_tip.emit('settip',{type:2,msg:'一个已启用的支付订单正在处理中',scene:''});
+            break;
+        }
     },
 
-    // called every frame, uncomment this function to activate update callback
-    // update: function (dt) {
- 
-    // },
+    GetGoods:function(data){
+       
+         this.popwinlayer.active = false;
+         this.msgtip.active = false;
+
+         this.win_tip.active = true;
+         this.win_tip.emit('settip',{type:2,msg:'购买成功',scene:''});
+
+         //更新玩家数据
+        // global.myinfo = data;
+         this.UpdataPlayerInfo();
+    },
 });

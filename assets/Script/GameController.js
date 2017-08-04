@@ -112,6 +112,7 @@ cc.Class({
 
 			if(cc.isValid(global.socket)){//发送准备信息
 				global.socket.controller = this;
+				global.anysdk.controller = this.node;
 				//发送准备完毕消息
 				var p = {
 					version: 102,
@@ -211,6 +212,9 @@ cc.Class({
 
 			case 1010://打死鱼公告
 				this.FishBroad(msg.data);
+			break;
+
+		case 1012://成功购买商品
 			break;
 
           case 2002:   //1对1 聊天        
@@ -1176,5 +1180,5 @@ cc.Class({
 			}
 		}	
 		return seat;
-	},
+	},	 
 });
