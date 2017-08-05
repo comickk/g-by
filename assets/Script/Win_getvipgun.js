@@ -1,13 +1,26 @@
+var global = require('Global');
 cc.Class({
     extends: require("PopWin"),
 
     properties: {
         win_vip:cc.Node,
+        gunlock:[cc.Node],
     },
 
     // use this for initialization
-    onLoad: function () {
+    // onLoad: function () {
       
+    // },
+
+    onEnable :function(){
+        this._super();
+        var vip =global.myinfo.vip+0;
+        for(var i=0;i<this.gunlock.length;i++){
+            if( i < vip)
+                this.gunlock[i].active =false;
+            else
+                break;
+        }
     },
 
     Btn_GetGun:function(event,customEventData){
@@ -30,7 +43,12 @@ cc.Class({
                 vip =5;
             break;
         }
-        this.win_vip.active =true;
-        this.win_vip.emit('showvip',{vip:vip});
+        if(customElements+0  > global.myinfo.vip){
+            this.win_vip.active =true;
+            this.win_vip.emit('showvip',{vip:vip});
+        }else{
+            this.Hide();
+            //发送VIP变炮样式消息
+        }        
     },
 });

@@ -2,7 +2,7 @@ var global = require('Global');
 
 //var plugin = require('anysdk');
 cc.Class({
-    extends: cc.Component,
+    extends:  require("Controller"),
 
     properties: {
        
@@ -42,25 +42,26 @@ cc.Class({
     // use this for initialization
     onLoad: function () {
 
+        this._super();
         var that = this;
-        cc.game.on(cc.game.EVENT_HIDE, function () {           
-            if(that._running){
-                cc.log('----------game hide');
-                that._running =false;
-                // that.schedule(that.SocketTest,10);
-                that._backtimeID = setInterval(that.SocketTest,10000);                
-            }            
-        });
+        // cc.game.on(cc.game.EVENT_HIDE, function () {           
+        //     if(that._running){
+        //         cc.log('----------game hide');
+        //         that._running =false;
+        //         // that.schedule(that.SocketTest,10);
+        //         that._backtimeID = setInterval(that.SocketTest,10000);                
+        //     }            
+        // });
 
-         cc.game.on(cc.game.EVENT_SHOW, function () {
+        //  cc.game.on(cc.game.EVENT_SHOW, function () {
            
-            if(!that._running){
-                cc.log('----------game show');
-                that._running = true;
-                clearInterval(that._backtimeID);                
-                //that.unschedule(that.SocketTest);
-            }
-        });
+        //     if(!that._running){
+        //         cc.log('----------game show');
+        //         that._running = true;
+        //         clearInterval(that._backtimeID);                
+        //         //that.unschedule(that.SocketTest);
+        //     }
+        // });
 
         var BGM = cc.find('BGM');
         if(cc.isValid(BGM) && !BGM.active)
@@ -79,6 +80,7 @@ cc.Class({
             this.SetRoom(i,true);       
           else 
             this.SetRoom(i,false);
+          //cc.Event.EventKeyboard.
         }       
 
         global.socket.controller = this;
@@ -90,8 +92,8 @@ cc.Class({
        //cc.log(global.myinfo);        
 
        //开启socket心跳发送
-       this.schedule(this.SocketTest1,10);
-           
+      // this.schedule(this.SocketTest1,10);
+       // var parentonload = this._super();      
     },
 
      SocketTest:function(){
@@ -444,5 +446,15 @@ cc.Class({
          //更新玩家数据
         // global.myinfo = data;
          this.UpdataPlayerInfo();
+    },
+
+    Event_Back:function(){
+        this.Btn_Back();
+    },
+     Event_Pause:function(){
+         this.Btn_Back();
+    },
+    Event_Home:function(){
+         this.Btn_Back();
     },
 });

@@ -5,13 +5,7 @@ cc.Class({
     
     },   
 
-    // use this for initialization
-    onLoad: function () {
-
-    },
-
-    // called every frame, uncomment this function to activate update callback
-    // update: function (dt) {
-
-    // },
+   DoWhat:function(){
+        cc.log('什么也不做');
+   },
 });

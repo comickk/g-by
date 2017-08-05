@@ -10,9 +10,9 @@ cc.Class({
     },
 
     // use this for initialization
-    onLoad: function () {
+    // onLoad: function () {
 
-    },
+    // },
 
     // Send:function(arg){
 

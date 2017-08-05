@@ -54,7 +54,7 @@ var PopWin = cc.Class({
         this.node.scaleY=0.5;
         if(this.sound[0])
             cc.audioEngine.play(this.sound[0]);
-       this.node.runAction( cc.sequence(cc.scaleTo(0.12,1.1,1.1),cc.scaleTo(0.18,1,1)));
+       this.node.runAction( cc.sequence(cc.scaleTo(0.12,1.1,1.1),cc.scaleTo(0.18,1,1)));      
     },
 
     onDisable:function(){
@@ -63,7 +63,7 @@ var PopWin = cc.Class({
             this.BGlayer.active = false;
            // this.BGlayer.color  = cc.Color.WHITE;
 
-    }
+    },   
     
 });
 module.exports = PopWin;

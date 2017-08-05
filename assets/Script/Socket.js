@@ -10,6 +10,7 @@ function gamesocket(){
    gamesocket.prototype.ws=null;
    gamesocket.prototype.msglist=[];
    gamesocket.prototype.controller =null;
+   gamesocket.prototype.testid = 0;
   // gamesocket.prototype.flow=0;
    
 
@@ -34,6 +35,19 @@ function gamesocket(){
                 })
             };
            this.send(JSON.stringify(p));
+
+           //this.Test();
+           var that = this;
+           this.testid = setInterval(function(){
+                var p = {
+                    version: 102,
+                    method: 666,                       
+                    seqId: Math.random() * 1000,
+                    timestamp: new Date().getTime(),                     
+                };
+                that.send(JSON.stringify(p));
+                //console.log(p.timestamp);      
+            },5000);   
 
            // console.log(this.ws);
         };
@@ -67,6 +81,7 @@ function gamesocket(){
 
         this.ws.onclose = function(evt){
             console.log('client notified socket has closed.', evt);
+              clearInterval( this.testid);
             self.controller.CloseSocket();
         };     
 
@@ -97,6 +112,21 @@ function gamesocket(){
             obj[data[i]] = data[++i]; 
         
         return obj;
+    }
+
+    gamesocket.prototype.Test = function(){
+
+        setInterval(function(){
+             var p = {
+                version: 102,
+                method: 666,                       
+                seqId: Math.random() * 1000,
+                timestamp: new Date().getTime(),                     
+            };
+            this.ws.send(JSON.stringify(p));
+            console.log(p.timestamp);      
+
+        },5000);           
     }
 
 var gs = new gamesocket();  

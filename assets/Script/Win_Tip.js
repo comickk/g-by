@@ -17,6 +17,7 @@ cc.Class({
 
     // use this for initialization
     onLoad: function () {
+        this._super();
         this._scene = '';
         this.node.on('settip',function(event){ //type: 弹窗类型2（提示信息） 1确认关闭 msg:
            if(event.detail.type == 1){

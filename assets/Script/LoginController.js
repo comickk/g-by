@@ -7,7 +7,7 @@ var socket = require('Socket');
 //var plugin = require('PluginAnySdk');
 //var uuid = require('index');
 cc.Class({
-    extends: cc.Component,
+    extends: require("Controller"),
 
     properties: {     
        
@@ -31,12 +31,13 @@ cc.Class({
         _loginnick:'',
         _loginpass:'',
 
-        testlabel:cc.Label,
+      //  testlabel:cc.Label,
       //  testfish:cc.Node,
     },
 
     // use this for initialization
     onLoad: function () {      
+        this._super();
          this.popwinlayer.on('touchend',function(){event.stopPropagation();});  
 
           cc.game.addPersistRootNode(this.BGM);
@@ -66,7 +67,7 @@ cc.Class({
         },this);
 
         //------any sdk event---------------
-        this.node.on('event_iap',this.IapEvent,this);
+        //this.node.on('event_iap',this.IapEvent,this);
 
 
          //初始化 anysdk
@@ -387,30 +388,38 @@ cc.Class({
          },5);
     },
 
+    Event_Back:function(){
+        this.btn_exit();
+    },
+
+    Event_Home:function(){
+        this.btn_exit();
+    },   
+
     //
-    test:function(){
-        this.testfish.emit('hide');
-    },
-    Btn_TestLog:function(){
-        this.testlabel.string= global.anysdk.log;
-    },
-    Btn_TestPay:function(){
-       // (id,name,price,userid,usernick,userglod,vip) {
-        global.anysdk.payForProduct( '1','gold_1','0.01','xxxxx','huangxin','999','10' );
-    },
+    // test:function(){
+    //     this.testfish.emit('hide');
+    // },
+    // Btn_TestLog:function(){
+    //     this.testlabel.string= global.anysdk.log;
+    // },
+    // Btn_TestPay:function(){
+    //    // (id,name,price,userid,usernick,userglod,vip) {
+    //     global.anysdk.payForProduct( '1','gold_1','0.01','xxxxx','huangxin','999','10' );
+    // },
 
-    IapEvent:function(event){
-        var msg = event.detail;
-        switch(msg.type){
-            case 'pay'://支付一个商品
-            this.testlabel.string = '---'+ msg.goods_id+'---'+ msg.goods_name+'---'+ msg.goods_price+'---'+ msg.user_id+'---'+ msg.user_nick+'---'+ msg.user_gold+'---'+ msg.user_vip;
-            break;
+    // IapEvent:function(event){
+    //     var msg = event.detail;
+    //     switch(msg.type){
+    //         case 'pay'://支付一个商品
+    //         this.testlabel.string = '---'+ msg.goods_id+'---'+ msg.goods_name+'---'+ msg.goods_price+'---'+ msg.user_id+'---'+ msg.user_nick+'---'+ msg.user_gold+'---'+ msg.user_vip;
+    //         break;
 
-            case 'kPaySuccess'://支付成功  
-            break;
+    //         case 'kPaySuccess'://支付成功  
+    //         break;
 
-        }
-    },
+    //     }
+    // },
     
 
 });

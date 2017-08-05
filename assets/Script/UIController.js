@@ -1,6 +1,6 @@
 var global = require('Global');
 cc.Class({
-    extends: cc.Component,
+    extends: require("Controller"),
 
     properties: {		
 		
@@ -37,7 +37,7 @@ cc.Class({
 
     // use this for initialization
     onLoad: function () {
-	
+		this._super();
 		global.ui = this.node;		
 		this.popwinbg.width = this.node.parent.width;
 		this.popwinbg.height = this.node.parent.height;
@@ -53,10 +53,7 @@ cc.Class({
 
 		},this);
 
-		this.node.on('exitgame',function(){
-			this.win_tip.active = true;
-			this.win_tip.emit('settip',{type:1,msg:'hall'});
-		},this);
+		this.node.on('exitgame',this.Menu_Back,this);
 
 		
 		this.node.on('socketclose',function(){
@@ -522,5 +519,20 @@ cc.Class({
 
 		 this.win_tip.active = true;
          this.win_tip.emit('settip',{type:2,msg:'购买成功',scene:''});
+	},
+		
+	Menu_Back:function(){
+		this.win_tip.active = true;
+		this.win_tip.emit('settip',{type:1,msg:'hall'});
+	},
+
+	  Event_Back:function(){
+        this.Menu_Back();
+    },
+     Event_Pause:function(){
+         this.Menu_Back();
+    },
+    Event_Home:function(){
+         this.Menu_Back();
     },
 });

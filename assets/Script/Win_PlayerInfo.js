@@ -20,18 +20,19 @@ cc.Class({
     },
 
     // use this for initialization
-    onLoad: function () {
+    // onLoad: function () {
 
-        // for(let i=0;i<9;i++)
-        //     this.SetItem(i,i,i+1);      
+    //     // for(let i=0;i<9;i++)
+    //     //     this.SetItem(i,i,i+1);      
 
-    },
+    // },
     onEnable:function(){
+        this._super();
          if(!cc.isValid(global.myinfo)) return;       
-
-        this.nick.string = global.myinfo.nickname;
+         this.nick.string = global.myinfo.nickname;
         this.golds.string = global.myinfo.score;
         this.Diamonds.string = global.myinfo.gift_count;
+        
        // this.Diamonds.string = '0';
 
         //console.log( '--------------'+global.myinfo['tool_'+'1']);
@@ -42,10 +43,11 @@ cc.Class({
         // }
     },
     
-    start:function(){
+    // start:function(){
        
-    },
+    // },
 
+  
     SetItem:function(soltid,itemid,num){
         if(num < 1) return;
         this.items[soltid].spriteFrame = this.itemimg[itemid];

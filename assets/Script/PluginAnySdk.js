@@ -10,14 +10,14 @@ PluginSdk.prototype.Init = function () {
     if (typeof anysdk === 'undefined' || !cc.sys.isMobile)
     {
         //this.msg.string = '-----------------no anysdk';
-        this.log +='-----------------no anysdk\n';
+       // this.log +='-----------------no anysdk\n';
         console.log('-----------------no anysdk');
     }
     else
     {              
         //this.msg.string = '-----------------has anysdk';
             console.log('----------------has anysdk');
-            this.log +='-----------------has anysdk\n';
+            //this.log +='-----------------has anysdk\n';
         
         this.iapPlugin = anysdk.agentManager.getIAPPlugin();
         if (this.iapPlugin) {
@@ -40,10 +40,10 @@ PluginSdk.prototype.payForProduct=function (id,name,price,userid,usernick,usergo
     if (!this.iapPlugin) {
         console.log('no support anysdk');
         //this.msg.string = '--------no support anysdk';
-         this.log +='--------no support anysdk\n';
+         //this.log +='--------no support anysdk\n';
         return;
     }
-     this.log +='--------start anysdk pay \n';
+     //this.log +='--------start anysdk pay \n';
     var info = {
         'Product_Id': id,                    //商品唯一标示符
         'Product_Name': name,               //商品名称
