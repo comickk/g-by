@@ -4,16 +4,16 @@ function gamesocket(){
 
 
 }
-   //gamesocket.prototype.URL = '192.168.2.77';//'118.190.89.153';
+   gamesocket.prototype.URL = '192.168.2.77';//'118.190.89.153';
 
-   gamesocket.prototype.URL = '118.190.89.153';
+   //gamesocket.prototype.URL = '118.190.89.153';
    gamesocket.prototype.ws=null;
    gamesocket.prototype.msglist=[];
    gamesocket.prototype.controller =null;
    gamesocket.prototype.testid = 0;
   // gamesocket.prototype.flow=0;
    
-
+   gamesocket.prototype.ping =0;
    gamesocket.prototype.Init = function( server,code  ){
         var self =this;
         this.ws = new WebSocket('ws://'+ this.URL+'/s/'+server+'/');
@@ -59,6 +59,21 @@ function gamesocket(){
 
             data = JSON.parse(data);
           
+            if(self.ping == 0 )
+                self.ping = new Date().getTime()-data.timestamp;
+            else{
+                var now_ping =new Date().getTime()-data.timestamp;
+
+              
+                if(self.ping < now_ping)
+                    self.ping = now_ping;
+                // else{
+                //      console.log('ping = '+ (self.ping - now_ping));
+                //     if(self.ping - now_ping > 300)
+                //         self.ws.close();
+                // }
+            }
+
             if( self.controller != null)
                 self.controller.MsgHandle(data);           
 
@@ -93,6 +108,7 @@ function gamesocket(){
     // }
 
     gamesocket.prototype.Close = function(){
+         this.ws.close();
         //console.log('--清空消息队列--');
         //   this.msglist.splice(0,this.msglist.length);
     }

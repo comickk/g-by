@@ -31,7 +31,7 @@ cc.Class({
         _loginnick:'',
         _loginpass:'',
 
-      //  testlabel:cc.Label,
+       // testlabel:cc.Label,
       //  testfish:cc.Node,
     },
 
@@ -93,9 +93,12 @@ cc.Class({
 
              global.volume =0.5;//音效音量
             global.musicid = 0;//背景乐ID
-            global.musicvol =0.5;//背景乐音量
+            global.musicvol =0.5;//背景乐音量      
     },
-
+ 
+    // onDestroy:function(){
+    //     cc.log('XXXXXXXXXXXXXXXXXXXXXXXX');
+    // },
     //消息处理
     MsgHandle:function(msg){
         
@@ -104,6 +107,11 @@ cc.Class({
         switch(msg.method){
             case 1:                 
                 global.myinfo = msg.data;//global.socket.MsgToObj(msg.data);  
+                
+                //上线统计
+                //  if( cc.isValid( global.anysdk))                                    
+                //     global.anysdk.LoginRecord(global.myinfo.id+'',global.myinfo.nickname+'');                 
+
                 if(cc.isValid(global.myinfo)){              
                 // global.myinfo = info;    
                 //cc.log(global.myinfo);
@@ -131,7 +139,7 @@ cc.Class({
     //         console.log(msg);
     //         socket.msglist.pop();
     //     }
-    // },
+    // },   
 
    //切换账号
     btn_switchid:function(){
@@ -158,7 +166,7 @@ cc.Class({
     btn_exit:function(){
      
         this.win_tip.active = true;
-        this.win_tip.emit('settip',{type:1,msg:''});
+        this.win_tip.emit('settip',{type:1,msg:'',callback:function(){  cc.game.end();   }  });
     },
 
     //获取账号开始游戏
@@ -253,7 +261,7 @@ cc.Class({
 
     //客服
     btn_contactus:function(){
-        this.win_kefu.active = true;
+       this.win_kefu.active = true;       
     },
 
     GetAuthCode:function(event){
@@ -366,10 +374,10 @@ cc.Class({
         xhr.send(arg);
     },
 
-    SetTip:function(){
-        this.win_tip.active = true;
-        this.win_tip.emit('settip',{type:2,msg:'测试期间不开放注册!',scene:''});
-    },
+    // SetTip:function(){
+    //     this.win_tip.active = true;
+    //     this.win_tip.emit('settip',{type:2,msg:'测试期间不开放注册!',scene:''});
+    // },
     // test:function(event, customEventData){
     //     console.log('--------'+customEventData);
     // }
@@ -394,7 +402,7 @@ cc.Class({
 
     Event_Home:function(){
         this.btn_exit();
-    },   
+    },       
 
     //
     // test:function(){

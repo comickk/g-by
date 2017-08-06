@@ -7,6 +7,7 @@ var Global = function(){
     var myid =0;
     var backid =null;
     var mygunlv =1;    
+    var mygunstyle =1;
 
     var roominfo = null;
 

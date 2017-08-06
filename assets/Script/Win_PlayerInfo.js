@@ -5,6 +5,7 @@ cc.Class({
     properties: {
 
         head:cc.Sprite,
+        username:cc.Label,
         nick:cc.Label,
         level:cc.ProgressBar,
         golds:cc.Label,
@@ -28,10 +29,21 @@ cc.Class({
     // },
     onEnable:function(){
         this._super();
-         if(!cc.isValid(global.myinfo)) return;       
+         if(!cc.isValid(global.myinfo)) return;      
+
+         this.username.string = global.myinfo.user_name;
          this.nick.string = global.myinfo.nickname;
         this.golds.string = global.myinfo.score;
         this.Diamonds.string = global.myinfo.gift_count;
+
+        if(global.myinfo.vip-0 > 0){
+            this.viplv.string = 'VIP '+global.myinfo.vip+' 级';
+            this.viptime.string ='永久';
+        }
+        else{
+            this.viplv.string = '普通会员';
+             this.viptime.string ='暂未成为VIP';
+        }
         
        // this.Diamonds.string = '0';
 

@@ -95,6 +95,8 @@ cc.Class({
 			this.LoadPath(event.detail.type,event.detail.pathid,event.detail.offstep,event.detail.isloop);
 		},this);
 
+		this.node.on('fishmove',this.FishMove,this);
+
 		//--
 		//this.node.on('test',this.test2,this);
 
@@ -177,7 +179,7 @@ cc.Class({
 			if( animstate != null) animstate.speed =4; 
 		}
 	
-		this.unschedule (this.FishMove);
+		//this.unschedule (this.FishMove);
 		//this.body.stopAllActions( );
 		// this.body.runAction( cc.spawn( 	cc.moveBy(hidetime,dx,dy),
 		// 								cc.rotateBy(hidetime/2,dr),
@@ -268,12 +270,12 @@ cc.Class({
 		}
 
 		//开始按轨迹动运
-		if( FishMath.fishpath.data[this._pathID].length > 1 ){
-			this.FishMove();
-			this.schedule(function() {
-				this.FishMove();
-			}, this._steplen);
-		}
+		//if( FishMath.fishpath.data[this._pathID].length > 1 ){
+		//	this.FishMove();
+			// this.schedule(function() {
+			// 	this.FishMove();
+			// }, this._steplen);
+		//}
 
 	
 		//cc.log(animstate.name+'    '+animstate.speed)

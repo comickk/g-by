@@ -21,6 +21,9 @@
       },
       {
         "__id__": 14
+      },
+      {
+        "__id__": 231
       }
     ],
     "_tag": -1,
@@ -677,6 +680,7 @@
       "__id__": 14
     },
     "_enabled": true,
+    "_running": true,
     "ebLoginId": {
       "__id__": 9
     },
@@ -1299,7 +1303,7 @@
       "__id__": 16
     },
     "component": "Win_Tip",
-    "handler": "Hide",
+    "handler": "BtnOK",
     "customEventData": ""
   },
   {
@@ -1749,7 +1753,8 @@
     "btn_exit": {
       "__id__": 40
     },
-    "_scene": ""
+    "_scene": "",
+    "_ok_callback": null
   },
   {
     "__type__": "cc.Node",
@@ -8302,5 +8307,79 @@
     },
     "_fitWidth": true,
     "_fitHeight": true
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "label",
+    "_objFlags": 0,
+    "_parent": {
+      "__id__": 1
+    },
+    "_children": [],
+    "_tag": -1,
+    "_active": false,
+    "_components": [
+      {
+        "__id__": 232
+      }
+    ],
+    "_prefab": null,
+    "_id": "911638EwWlGaIb/AdFQi4pP",
+    "_opacity": 255,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_cascadeOpacityEnabled": true,
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 73.4,
+      "height": 30
+    },
+    "_rotationX": 0,
+    "_rotationY": 0,
+    "_scaleX": 1,
+    "_scaleY": 1,
+    "_position": {
+      "__type__": "cc.Vec2",
+      "x": 156,
+      "y": 384
+    },
+    "_skewX": 0,
+    "_skewY": 0,
+    "_localZOrder": 0,
+    "_globalZOrder": 0,
+    "_opacityModifyRGB": false,
+    "groupIndex": 0
+  },
+  {
+    "__type__": "cc.Label",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 231
+    },
+    "_enabled": true,
+    "_useOriginalSize": false,
+    "_actualFontSize": 30,
+    "_fontSize": 30,
+    "_lineHeight": 30,
+    "_enableWrapText": true,
+    "_N$file": null,
+    "_isSystemFontUsed": true,
+    "_spacingX": 0,
+    "_N$string": "Label",
+    "_N$horizontalAlign": 1,
+    "_N$verticalAlign": 1,
+    "_N$fontFamily": "Arial",
+    "_N$overflow": 0
   }
 ]

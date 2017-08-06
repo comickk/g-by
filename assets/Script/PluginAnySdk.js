@@ -12,22 +12,33 @@ PluginSdk.prototype.Init = function () {
         //this.msg.string = '-----------------no anysdk';
        // this.log +='-----------------no anysdk\n';
         console.log('-----------------no anysdk');
+        return null;
     }
     else
     {              
         //this.msg.string = '-----------------has anysdk';
             console.log('----------------has anysdk');
             //this.log +='-----------------has anysdk\n';
-        
+        //支付
         this.iapPlugin = anysdk.agentManager.getIAPPlugin();
         if (this.iapPlugin) {
             this.iapPlugin.setListener(this.onPayResult, this);
         }
 
+        //登录
         this.userPlugin = anysdk.agentManager.getUserPlugin();
         if (this.userPlugin) {
             this.userPlugin.setListener(this.onUserResult, this);
         }
+
+        //统计
+        this.analytics_plugin = anysdk.agentManager.getAnalyticsPlugin();
+        if(this.analytics_plugin){
+           // this.startSession();
+          //  this.analytics_plugin.setSessionContinueMillis(600000);//超过10分钟算两次启动
+            console.log('---------------- analytics plugin ready');
+        }
+
     }
     return this;
     //global.anysdk = this;
@@ -133,7 +144,7 @@ PluginSdk.prototype.onPayResult = function (code, msg) {
         default:
             break;
     }
-
+}
 //--------------登录类----------------------------------------------
     
 
@@ -288,7 +299,64 @@ PluginSdk.prototype.onPayResult = function (code, msg) {
                 break;
         }
     }
-}
+    //---------------------统计类-------------------
+    //开启统计
+
+    PluginSdk.prototype.fuckyou  = function(){
+         console.log('操你妈B');
+     }
+
+     PluginSdk.prototype.startSession = function(){ this.analytics_plugin.startSession();}
+     PluginSdk.prototype.stopSession =  function(){this.analytics_plugin.stopSession();}
+
+    /**
+     *  Account_Id	Y	游戏中玩家 ID
+        Account_Name	Y	游戏中玩家昵称
+        Account_Type	Y	传入帐户的类型（ANONYMOUS 匿名，REGISTED 自有账号，SINA_WEIBO 新浪微博，TENCENT_WEIBO 腾讯微博，QQ，ND91）
+        Account_Level	Y	游戏中玩家等级
+        Account_Age	Y	玩家年龄
+        Account_Operate	Y	账户操作（LOGIN 登陆，LOGOUT 登出，REGISTER 注册）
+        Account_Gender	Y	游戏角色性别（UNKNOWN 未知，FEMALE 女性，MALE 男性）
+        Server_Id	Y	服务器 ID
+     */
+
+     
+
+     PluginSdk.prototype.LoginRecord = function(uid,uname ){
+        if(this.analytics_plugin && this.analytics_plugin.setAccount)
+        {
+            var paramMap = {
+                Account_Id :uid,
+                Account_Name : uname,
+                Account_Type : (anysdk.AccountType.REGISTED).toString(),
+                Account_Level : "1",
+                Account_Age : "20",
+                Account_Operate : (anysdk.AccountOperate.LOGIN).toString(),
+                Account_Gender : (anysdk.AccountGender.UNKNOWN).toString(),
+                Server_Id : "1"
+            }
+            this.analytics_plugin.setAccount(paramMap);
+        }else
+         console.log('no support anysdk');
+     }
+    PluginSdk.prototype.LogoutRecord = function(uid,uname ){
+        if(this.analytics_plugin && this.analytics_plugin.setAccount)
+        {
+            var paramMap = {
+                Account_Id :uid,
+                Account_Name : uname,
+                Account_Type : (anysdk.AccountType.REGISTED).toString(),
+                Account_Level : "1",
+                Account_Age : "20",
+                Account_Operate : (anysdk.AccountOperate.LOGOUT).toString(),
+                Account_Gender : (anysdk.AccountGender.UNKNOWN).toString(),
+                Server_Id : "1"
+            }
+           this.analytics_plugin.setAccount(paramMap);
+        }else
+            console.log('no support anysdk');
+    }
+
 //var plugin = new PluginSdk();  
 //module.exports =plugin.Init();
 module.exports = new PluginSdk();  

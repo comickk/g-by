@@ -25,7 +25,7 @@ var Audiotype =cc.Enum({
 	WARNING:-1,
 });
 cc.Class({
-    extends: cc.Component,
+    extends: require("Controller"),
 
     properties: {    
 		
@@ -63,11 +63,17 @@ cc.Class({
 		//----------------测试
 		log:cc.Label,
 		//--------------------
+
+		_hidetime:0,
+
+		_fishmovetimer:false,
     },	
     // use this for initialization
     onLoad: function () {         
+		this._super();
 		global.game = this.node;
 		global.mygunlv =1;
+		global.mygunstyle =1;
 		//global.myseat =0;
 		this._seatid = ['','','','',''];
 	
@@ -111,8 +117,12 @@ cc.Class({
 			if(!cc.isValid(this._gunstyle) || !cc.isValid(FishMath.fishpath))	return;		
 
 			if(cc.isValid(global.socket)){//发送准备信息
+			
 				global.socket.controller = this;
-				global.anysdk.controller = this.node;
+
+				 if(cc.isValid(global.anysdk))
+					global.anysdk.controller = this.node;
+
 				//发送准备完毕消息
 				var p = {
 					version: 102,
@@ -185,10 +195,14 @@ cc.Class({
 		xhr2.open("GET", "http://"+global.socket.URL +"/client/cfg/bullet?"+new Date().getTime(), true);
 		xhr2.send();
 
-		//this._log = cc.find('console').getComponent(cc.Label);	
+		//this._log = cc.find('console').getComponent(cc.Label);		
 
    },
-    
+    FishMove:function(){
+		for(let i = 0;i<this.fishlayer.children.length;i++)	
+			this.fishlayer.children[i].emit('fishmove');
+	},
+
     start:function(){            
     	// //初始化炮，跟据座位 设置炮位
     	// global.myseat =3;
@@ -201,8 +215,7 @@ cc.Class({
 
 	  //消息处理
     MsgHandle:function(msg){
-
-		// console.log(msg.data);
+		// console.log(msg.data);		
 		 switch(msg.method){
 			case 1008://服务器公告
 			//cc.log(msg.data);
@@ -305,7 +318,7 @@ cc.Class({
 		}		
 		
 		var userinfo = data[0];				
-		cc.log(userinfo);
+		//cc.log(userinfo);
 		//[0] extend_data
 		//[1] open_time
 		//[2] current_bullet_level
@@ -362,7 +375,10 @@ cc.Class({
 						user.score = userinfo[j+4];
 						if(user.vip > 0)	style = 3+user.vip;
 					
-						if(user.id == global.myid)	global.mygunlv =level;	
+						if(user.id == global.myid)	{
+							global.mygunlv =level;	
+							global.mygunstyle = style;
+						}
 
 						break;						
 					}						
@@ -505,8 +521,10 @@ cc.Class({
 
 	//碰撞事件处理
 	Collider:function(event){		
-		//生成鱼网  类型和初始位置		
-		var msg = event.detail;
+		//生成鱼网  类型和初始位置	
+	
+		var msg = event.detail;		
+
 		global.pool_net.f_GetNode(	this.node, msg.x, msg.y,msg.r,
 									this.v_netsprite[msg.type-1]).getComponent("net").f_InitNet( msg.type,msg.seat,this);				
 		
@@ -668,6 +686,11 @@ cc.Class({
 					this.fishlayer.children[i].emit('synchro',{step:d.step});
 				//console.log('-----------'+d.step);
 			}	
+		}
+			//鱼类move计时器
+		if(!this._fishmovetimer){
+			this._fishmovetimer = true;
+			this.schedule(this.FishMove,0.3,cc.macro.REPEAT_FOREVER,0);
 		}
 	},
 	//SyncFish:function(event){
@@ -905,26 +928,30 @@ cc.Class({
 		// 		f.emit('unfreeze');
 	},
 
-	SetGunType:function(data){			
-		
-		var lv = data[1];
-		var seat = this.GetPlayerSeat(data[0]);	
+	SetGunType:function(data){					
+
+		var lv = data[0][1]-0;
+		var style = data[1]-0;
+		var seat = this.GetPlayerSeat(data[0][0]);	
 
 		if(seat<1 || seat >4){
-			console.log('坐号错误 '+'  SetGun  '+ seat+'  '+ data[0]);
+			console.log('坐号错误 '+'  SetGun  '+ seat+'  '+ data[0][0]);
 			return;
 		} 
 
 		if(lv>this._gunstyle.data.length) lv =this._gunstyle.data.length;
 		global.ui.emit('setgunlevel',{seat:seat,level:this._gunstyle.data[lv-1].cost});			
 
-		if(seat == global.myseat)
-			global.mygunlv =lv-0;		
+		if(seat == global.myseat){
+			global.mygunlv =lv-0;	
+			global.mygunstyle = style-0;
+		}	
 		
 		//给对应炮发消息，改变类型
 		//console.log(this._gunstyle);
 		//7-30炮样式以房间类型和VIP等级决定
-		var style = global.roominfo.gunstyle;
+		//var style = global.roominfo.gunstyle;
+
 		//if(this._gunstyle.data[lv-1].style>0)
 		//	style = this._gunstyle.data[lv-1].style;
 		//console.log('-----------'+style);
@@ -1181,4 +1208,13 @@ cc.Class({
 		}	
 		return seat;
 	},	 
+
+	onHide:function(){
+		this._hidetime = new Date().getTime();
+	},
+	onShow:function(){
+		if(new  Date().getTime() - this._hidetime  > 500){//切换出游戏超过500毫秒
+			this.CloseSocket();
+		}
+	}
 });

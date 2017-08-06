@@ -227,11 +227,11 @@ cc.Class({
 
 
 		//让鱼闪一下
-		if(this._collidemsg){
-			other.node.emit('flash');		
+	//	if(this._collidemsg){
+			other.node.emit('flash');				
 			global.game.emit('collider',{seat:this.v_seat,type:this.v_type,	x:this.node.x,y:this.node.y,r:this.node.rotation,
 										id:this.node.name,fishname:other.node.name});
-		}
+	//	}
 
 		//消毁子弹(返回对象池)									
 		this.node.stopAllActions();		

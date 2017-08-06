@@ -275,9 +275,7 @@ cc.Class({
 		}		
 	
 		//计算炮弹的目标点
-		var tp = FishMath.GetFirePos(this.node.rotation,this.node.x,this.node.y,this.v_cw/2,this.v_ch/2);	
-		
-		   		
+		var tp = FishMath.GetFirePos(this.node.rotation,this.node.x,this.node.y,this.v_cw/2,this.v_ch/2);			   		
 		
         //生成炮弹(从资源池中取并初始化)
 		var v = this.v_bulletpos.convertToWorldSpace (cc.v2(this.v_bulletpos.x, this.v_bulletpos.y));
@@ -299,7 +297,7 @@ cc.Class({
 	//设置炮类型
     SetType:function(event){		
 		global.ac.emit('change');
-		//this.v_type = event.detail.type;
+		this.v_type = event.detail.type;
 		this._bulletcost = event.detail.cost;
 		this.node.getComponent(cc.Sprite).spriteFrame = this.v_gunsprite[this.v_type-1];
 		

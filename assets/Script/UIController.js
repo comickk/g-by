@@ -58,12 +58,38 @@ cc.Class({
 		
 		this.node.on('socketclose',function(){
 			this.win_tip.active = true;
-			this.win_tip.emit('settip',{type:2,msg:'与服务器的联接已断开,请重新登录',scene:'login'});
+			this.win_tip.emit('settip',{type:2,msg:'与服务器的联接已断开,请重新登录',callback:function(){
+				var p = {
+							version: 102,
+							method: 3005,                       
+							seqId: Math.random() * 1000,
+							timestamp: new Date().getTime(),                     
+						};
+						global.socket.ws.send(JSON.stringify(p));	
+			
+						cc.director.preloadScene('login', function () {
+							cc.audioEngine.stopAll();
+							cc.director.loadScene('login');   
+						})
+			}  });
 		},this);
 
 		this.node.on('error',function(event){
 			this.win_tip.active = true;
-			this.win_tip.emit('settip',{type:2,msg:event.detail.msg,scene:'login'});
+			this.win_tip.emit('settip',{type:2,msg:event.detail.msg,callback:function(){
+				var p = {
+							version: 102,
+							method: 3005,                       
+							seqId: Math.random() * 1000,
+							timestamp: new Date().getTime(),                     
+						};
+						global.socket.ws.send(JSON.stringify(p));	
+			
+						cc.director.preloadScene('login', function () {
+							cc.audioEngine.stopAll();
+							cc.director.loadScene('login');   
+						})
+			}  });
 		},this);
 
 		//金币不足
@@ -285,9 +311,10 @@ cc.Class({
 				method: 5013,				
 				seqId: Math.random() * 1000,
 				timestamp: new Date().getTime(),
-				data:global.mygunlv + (customEventData-0),
+				data:JSON.stringify({level:global.mygunlv + (customEventData-0),style:global.mygunstyle}),
 			};
 		global.socket.ws.send(JSON.stringify(p));	
+		//cc.log(p);
 	},
 
 	f_Btn_Sub:function(){
@@ -414,7 +441,7 @@ cc.Class({
 
 	 WinTip:function(){
         this.win_tip.active = true;
-        this.win_tip.emit('settip',{type:2,msg:'暂未开放，敬请期待',scene:''});
+        this.win_tip.emit('settip',{type:2,msg:'暂未开放，敬请期待'});
 	},
 	
 	BtnPlayer:function(event, customEventData){
@@ -473,7 +500,7 @@ cc.Class({
 	Btn_PayProduct:function(event,customEventData){
         if(!cc.isValid(global.anysdk)){
 			this.win_tip.active = true;
-            this.win_tip.emit('settip',{type:2,msg:'目前无法使用支付系统',scene:''});
+            this.win_tip.emit('settip',{type:2,msg:'目前无法使用支付系统'});
             return;
 		}
 		        
@@ -495,19 +522,19 @@ cc.Class({
             break;
 			 case 'kPayFail1':
 			 	this.win_tip.active = true;
-                this.win_tip.emit('settip',{type:2,msg:'支付失败',scene:''});
+                this.win_tip.emit('settip',{type:2,msg:'支付失败'});
             break;
 			case 'kPayFail2':
 				this.win_tip.active = true;
-                this.win_tip.emit('settip',{type:2,msg:'支付系统网络异常,请稍侯再试',scene:''});
+                this.win_tip.emit('settip',{type:2,msg:'支付系统网络异常,请稍侯再试'});
             break;
 			case 'kPayFail3':
 				this.win_tip.active = true;
-                this.win_tip.emit('settip',{type:2,msg:'购买的商品信息可能已下架或信息不完整,请购买其它商品',scene:''});
+                this.win_tip.emit('settip',{type:2,msg:'购买的商品信息可能已下架或信息不完整,请购买其它商品'});
             break;
 			case  'kPayNowPaying'://支付进行中
 				this.win_tip.active = true;
-                this.win_tip.emit('settip',{type:2,msg:'一个已启用的支付订单正在处理中',scene:''});
+                this.win_tip.emit('settip',{type:2,msg:'一个已启用的支付订单正在处理中'});
             break;
         }
 	},
@@ -518,12 +545,27 @@ cc.Class({
          this.msgtip.active = false;
 
 		 this.win_tip.active = true;
-         this.win_tip.emit('settip',{type:2,msg:'购买成功',scene:''});
+         this.win_tip.emit('settip',{type:2,msg:'购买成功',callback:function(){
+
+		 }   });
 	},
 		
 	Menu_Back:function(){
 		this.win_tip.active = true;
-		this.win_tip.emit('settip',{type:1,msg:'hall'});
+		this.win_tip.emit('settip',{type:1,callback:function(){
+			var p = {
+                        version: 102,
+                        method: 3005,                       
+                        seqId: Math.random() * 1000,
+                        timestamp: new Date().getTime(),                     
+                    };
+                    global.socket.ws.send(JSON.stringify(p));	
+        
+                    cc.director.preloadScene('hall', function () {
+                        cc.audioEngine.stopAll();
+                        cc.director.loadScene('hall');   
+                    })
+		}  });
 	},
 
 	  Event_Back:function(){

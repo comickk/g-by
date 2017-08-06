@@ -84,7 +84,8 @@ cc.Class({
         }       
 
         global.socket.controller = this;
-        global.anysdk.controller = this.node;
+        if(cc.isValid(global.anysdk))
+            global.anysdk.controller = this.node;
 
           //------any sdk event---------------
         this.node.on('event_iap',this.IapEvent,this);
@@ -93,7 +94,7 @@ cc.Class({
 
        //开启socket心跳发送
       // this.schedule(this.SocketTest1,10);
-       // var parentonload = this._super();      
+       // var parentonload = this._super();          
     },
 
      SocketTest:function(){
@@ -121,7 +122,7 @@ cc.Class({
 
     start:function(){
         //设置玩家基本信息
-        //console.log(global.myinfo);
+       //console.log(global.myinfo);
        this.UpdataPlayerInfo();
         //-------转盘测试------------
        // this.win_rotary.active = true;//每日登录奖励转盘 
@@ -159,8 +160,12 @@ cc.Class({
                 global.broad.emit('settext',{text:msg.data});            
             break;
 
-          case 1012://成功购买商品
-          cc.log(msg.data);
+          case 1012://成功购买商品确认
+            cc.log(msg.data);
+            this.SignGoods(msg.data);
+          break;
+          case 1016://发放物品
+            cc.log(msg.data);
             this.GetGoods(msg.data);
           break;
             
@@ -235,7 +240,7 @@ cc.Class({
 
     WinTip:function(){
         this.win_tip.active = true;
-        this.win_tip.emit('settip',{type:2,msg:'暂未开放，敬请期待',scene:''});
+        this.win_tip.emit('settip',{type:2,msg:'暂未开放，敬请期待'});
     },
 
     Btn_Fish:function(){
@@ -285,8 +290,14 @@ cc.Class({
 
          cc.director.preloadScene('login', function () {
                  cc.loader.onProgress=null;
-               cc.director.loadScene('login');               
-        });
+               cc.director.loadScene('login');     
+
+               //离开统计
+                //  if( cc.isValid( global.anysdk))
+                //     global.anysdk.LogoutRecord(global.myinfo.id+'',global.myinfo.nickname+'');                   
+                
+                global.socket.Close();          
+        });       
     },
 
     Btn_Shop:function(){
@@ -389,13 +400,26 @@ cc.Class({
 
     CloseSocket:function(){		
 		this.win_tip.active = true;
-		this.win_tip.emit('settip',{type:2,msg:'与服务器的联接已断开,请重新登录',scene:'login'});
+		this.win_tip.emit('settip',{type:2,msg:'与服务器的联接已断开,请重新登录',callback:function(){  
+             var p = {
+                        version: 102,
+                        method: 3005,                       
+                        seqId: Math.random() * 1000,
+                        timestamp: new Date().getTime(),                     
+                    };
+                    global.socket.ws.send(JSON.stringify(p));	
+        
+                    cc.director.preloadScene('login', function () {
+                            cc.audioEngine.stopAll();
+                            cc.director.loadScene('login');   
+                    });
+         }});
 	},
   
     Btn_PayProduct:function(event,customEventData){
         if(!cc.isValid(global.anysdk)){
             this.win_tip.active = true;
-            this.win_tip.emit('settip',{type:2,msg:'目前无法使用支付系统',scene:''});
+            this.win_tip.emit('settip',{type:2,msg:'目前无法使用支付系统'});
             return;
         }
         
@@ -418,33 +442,63 @@ cc.Class({
             break;
              case 'kPayFail1':
                 this.win_tip.active = true;
-                this.win_tip.emit('settip',{type:2,msg:'支付失败',scene:''});
+                this.win_tip.emit('settip',{type:2,msg:'支付失败'});
             break;
             case 'kPayFail2':
                 this.win_tip.active = true;
-                this.win_tip.emit('settip',{type:2,msg:'支付系统网络异常,请稍侯再试',scene:''});
+                this.win_tip.emit('settip',{type:2,msg:'支付系统网络异常,请稍侯再试'});
             break;
             case 'kPayFail3':
                 this.win_tip.active = true;
-                this.win_tip.emit('settip',{type:2,msg:'购买的商品信息可能已下架或信息不完整,请购买其它商品',scene:''});
+                this.win_tip.emit('settip',{type:2,msg:'购买的商品信息可能已下架或信息不完整,请购买其它商品'});
             break;
             case  'kPayNowPaying'://支付进行中
                 this.win_tip.active = true;
-                this.win_tip.emit('settip',{type:2,msg:'一个已启用的支付订单正在处理中',scene:''});
+                this.win_tip.emit('settip',{type:2,msg:'一个已启用的支付订单正在处理中'});
             break;
         }
     },
 
+     SignGoods:function(data){
+        if(data.id != global.myinfo.id) return;
+
+        var p = {
+                version: 102,
+                method: 1015,                       
+                seqId: Math.random() * 1000,
+                timestamp: new Date().getTime(),                     
+            };
+            global.socket.ws.send(JSON.stringify(p));
+        //  this.popwinlayer.active = false;
+        //  this.msgtip.active = false;
+
+        //  this.win_tip.active = true;
+        //  var that = this;
+        //  this.win_tip.emit('settip',{type:2,msg:'购买成功',callback:function(){
+        //     var p = {
+        //         version: 102,
+        //         method: 1015,                       
+        //         seqId: Math.random() * 1000,
+        //         timestamp: new Date().getTime(),                     
+        //     };
+        //     global.socket.ws.send(JSON.stringify(p));
+        //  } });
+
+         //更新玩家数据
+         //global.myinfo = data;
+         //this.UpdataPlayerInfo();
+    },
     GetGoods:function(data){
        
+        if(data.user_id != global.myinfo.id) return;
          this.popwinlayer.active = false;
          this.msgtip.active = false;
 
-         this.win_tip.active = true;
-         this.win_tip.emit('settip',{type:2,msg:'购买成功',scene:''});
+         this.win_tip.active = true;       
+         this.win_tip.emit('settip',{type:2,msg:'购买成功'+ data.score +'金币'});
 
          //更新玩家数据
-        // global.myinfo = data;
+         global.myinfo.score += data.score;
          this.UpdataPlayerInfo();
     },
 
